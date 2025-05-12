@@ -1,79 +1,205 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<!-- MainPage.xaml actualizado -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:GaleriaApp.ViewModels"
              xmlns:converters="clr-namespace:GaleriaApp.Converters"
              x:Class="GaleriaApp.MainPage"
-             Title="Mi Galería de Medios">
+             x:DataType="vm:MainViewModel"
+             Title="Mi Galería">
     <ContentPage.Resources>
-        <converters:StringEqualConverter x:Key="StringEqualConverter" />
+        <ResourceDictionary>
+            <converters:StringEqualConverter x:Key="StringEqualConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid RowDefinitions="Auto,*,Auto">
-        <Label Text="Mi Galería de Medios"
-               FontSize="24"
-               HorizontalOptions="Center"
-               Margin="0,10,0,10" />
-        <CollectionView Grid.Row="1"
-                        x:Name="MediaCollection"
-                        SelectionMode="Single"
-                        SelectionChanged="OnMediaSelected">
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical"
-                                 Span="2" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="5"
-                            Padding="0"
-                            StrokeShape="RoundRectangle 10"
-                            StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
-                        <Grid RowDefinitions="*,Auto">
-                            <!-- Imagen con indicador de video si es necesario -->
-                            <Grid>
-                                <Image Source="{Binding Path}"
-                                       Aspect="AspectFill"
-                                       HeightRequest="150" />
-                                <!-- Icono de video si es aplicable -->
-                                <Image IsVisible="{Binding Type, Converter={StaticResource StringEqualConverter}, ConverterParameter='Video'}"
-                                       Source="play_icon.png"
-                                       HeightRequest="40"
-                                       WidthRequest="40"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center" />
-                            </Grid>
-                            <!-- Título con tipo de archivo -->
-                            <StackLayout Grid.Row="1"
-                                         Padding="5">
-                                <Label Text="{Binding Title}"
-                                       LineBreakMode="TailTruncation" />
-                                <Label Text="{Binding Type}"
-                                       FontSize="Small"
-                                       TextColor="Gray" />
-                            </StackLayout>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-            <CollectionView.EmptyView>
-                <StackLayout VerticalOptions="Center"
-                             HorizontalOptions="Center">
-                    <Label Text="No hay medios disponibles"
-                           FontSize="18"
-                           HorizontalTextAlignment="Center" />
-                    <Label Text="Usa los botones de abajo para añadir fotos o videos"
-                           FontSize="14"
-                           HorizontalTextAlignment="Center" />
-                </StackLayout>
-            </CollectionView.EmptyView>
-        </CollectionView>
-        <HorizontalStackLayout Grid.Row="2"
-                               HorizontalOptions="Center"
-                               Spacing="10"
-                               Margin="0,10,0,20">
-            <Button Text="Seleccionar Foto"
-                    Clicked="OnSelectPhotoClicked" />
-            <Button Text="Seleccionar Video"
-                    Clicked="OnSelectVideoClicked" />
+    <Grid RowDefinitions="Auto,Auto,*,Auto"
+          Padding="10">
+        <!-- Título y barra de búsqueda -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="*,Auto"
+              Margin="0,10,0,10">
+            <Label Text="Mi Galería"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center" />
+            <Button Grid.Column="1"
+                    Text="&#xf002;"
+                    FontFamily="FontAwesome"
+                    Clicked="OnSearchToggleClicked"
+                    WidthRequest="50"
+                    HeightRequest="50"
+                    CornerRadius="25"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    TextColor="White" />
+        </Grid>
+        <!-- Barra de búsqueda (visible cuando se activa) -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding IsSearchActive}">
+            <SearchBar Placeholder="Buscar medios..."
+                       Text="{Binding SearchQuery}"
+                       CancelButtonColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        </Grid>
+        <!-- Selector de visualización y filtros -->
+        <HorizontalStackLayout Grid.Row="1"
+                               Spacing="15"
+                               Margin="0,0,0,10">
+            <Button Text="&#xf00a;"
+                    FontFamily="FontAwesome"
+                    Clicked="OnGridViewClicked"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="20"
+                    BackgroundColor="{Binding IsGridView, Converter={StaticResource BoolToBackgroundConverter}}" />
+            <Button Text="&#xf00b;"
+                    FontFamily="FontAwesome"
+                    Clicked="OnListViewClicked"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="20"
+                    BackgroundColor="{Binding IsListView, Converter={StaticResource BoolToBackgroundConverter}}" />
+            <Picker Title="Filtrar por"
+                    SelectedItem="{Binding SelectedMediaType}"
+                    HorizontalOptions="EndAndExpand">
+                <Picker.Items>
+                    <x:String>Todos</x:String>
+                    <x:String>Imagen</x:String>
+                    <x:String>Video</x:String>
+                </Picker.Items>
+            </Picker>
         </HorizontalStackLayout>
+        <!-- Vista de colección principal con efecto de carga y sin elementos -->
+        <Grid Grid.Row="2">
+            <!-- Vista principal de la colección -->
+            <CollectionView ItemsSource="{Binding MediaItems}"
+                            SelectionMode="Single"
+                            SelectionChangedCommand="{Binding MediaSelectedCommand}"
+                            SelectionChangedCommandParameter="{Binding SelectedItem, Source={RelativeSource Self}}"
+                            IsVisible="{Binding IsNotBusy}">
+                <!-- Configurar según isGridView o isListView -->
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical"
+                                     Span="{Binding GridSpan}" />
+                </CollectionView.ItemsLayout>
+                <!-- Plantilla de items mejorada -->
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:MediaItem">
+                        <Frame Margin="5"
+                               Padding="0"
+                               CornerRadius="10"
+                               BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                               HasShadow="True">
+                            <Grid RowDefinitions="*,Auto">
+                                <!-- Media preview con overlay -->
+                                <Grid>
+                                    <Image Source="{Binding Path}"
+                                           Aspect="AspectFill"
+                                           HeightRequest="180" />
+                                    <!-- Video indicator overlay -->
+                                    <Grid IsVisible="{Binding Type, Converter={StaticResource StringEqualConverter}, ConverterParameter='Video'}"
+                                          BackgroundColor="#80000000"
+                                          HorizontalOptions="Center"
+                                          VerticalOptions="Center"
+                                          WidthRequest="50"
+                                          HeightRequest="50"
+                                          CornerRadius="25">
+                                        <Label Text="&#xf04b;"
+                                               FontFamily="FontAwesome"
+                                               FontSize="20"
+                                               TextColor="White"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                </Grid>
+                                <!-- Info footer -->
+                                <StackLayout Grid.Row="1"
+                                             Padding="10,5">
+                                    <Label Text="{Binding Title}"
+                                           FontAttributes="Bold"
+                                           LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding DateCreated, StringFormat='{0:dd MMM yyyy}'}"
+                                           FontSize="12"
+                                           TextColor="Gray" />
+                                </StackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <!-- Empty state con ilustración -->
+                <CollectionView.EmptyView>
+                    <StackLayout VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Spacing="20"
+                                 Padding="20">
+                        <Image Source="empty_gallery.png"
+                               HeightRequest="150"
+                               Aspect="AspectFit"
+                               HorizontalOptions="Center" />
+                        <Label Text="Tu galería está vacía"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="Añade fotos o videos usando los botones de abajo"
+                               FontSize="16"
+                               TextColor="Gray"
+                               HorizontalTextAlignment="Center" />
+                    </StackLayout>
+                </CollectionView.EmptyView>
+            </CollectionView>
+            <!-- Loading indicator -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               Color="{StaticResource Primary}"
+                               HeightRequest="50"
+                               WidthRequest="50" />
+        </Grid>
+        <!-- Barra de acciones flotante -->
+        <Frame Grid.Row="3"
+               BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+               CornerRadius="30"
+               HasShadow="True"
+               Padding="5"
+               Margin="0,15,0,10"
+               HorizontalOptions="Center">
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="&#xf030;"
+                        FontFamily="FontAwesome"
+                        Command="{Binding TakePhotoCommand}"
+                        WidthRequest="60"
+                        HeightRequest="60"
+                        CornerRadius="30"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        FontSize="24" />
+                <Button Text="&#xf03e;"
+                        FontFamily="FontAwesome"
+                        Command="{Binding SelectPhotoCommand}"
+                        WidthRequest="60"
+                        HeightRequest="60"
+                        CornerRadius="30"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        FontSize="24" />
+                <Button Text="&#xf03d;"
+                        FontFamily="FontAwesome"
+                        Command="{Binding SelectVideoCommand}"
+                        WidthRequest="60"
+                        HeightRequest="60"
+                        CornerRadius="30"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        FontSize="24" />
+                <Button Text="&#xf067;"
+                        FontFamily="FontAwesome"
+                        Clicked="OnMoreOptionsClicked"
+                        WidthRequest="60"
+                        HeightRequest="60"
+                        CornerRadius="30"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        FontSize="24" />
+            </HorizontalStackLayout>
+        </Frame>
     </Grid>
 </ContentPage>
