@@ -43,15 +43,13 @@
         <HorizontalStackLayout Grid.Row="1"
                                Spacing="15"
                                Margin="0,0,0,10">
-            <Button Text="&#xf00a;"
-                    FontFamily="FontAwesome"
+            <Button Text="Grid"
                     Clicked="OnGridViewClicked"
                     WidthRequest="40"
                     HeightRequest="40"
                     CornerRadius="20"
                     BackgroundColor="{Binding IsGridView, Converter={StaticResource BoolToBackgroundConverter}}" />
-            <Button Text="&#xf00b;"
-                    FontFamily="FontAwesome"
+            <Button Text="List"
                     Clicked="OnListViewClicked"
                     WidthRequest="40"
                     HeightRequest="40"

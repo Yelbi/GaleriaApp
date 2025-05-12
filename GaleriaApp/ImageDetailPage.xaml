@@ -1,22 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="GaleriaApp.ImageDetailPage"
              Title="Detalle de Imagen"
              BackgroundColor="Black">
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Compartir"
-                     Clicked="OnShareClicked" />
-        <ToolbarItem Text="Eliminar"
-                     Clicked="OnDeleteClicked" />
-        <ToolbarItem Text="Rotar"
-                     Clicked="OnRotateClicked" />
-    </ContentPage.ToolbarItems>
     <Grid>
-        <!-- Imagen con gestos para rotar y pellizcar -->
-        <ScrollView x:Name="ImageScrollView"
-                    Orientation="Both"
-                    HorizontalScrollBarVisibility="Never"
-                    VerticalScrollBarVisibility="Never">
+        <!-- Imagen con gestos básicos -->
+        <ScrollView x:Name="ImageScrollView">
             <Image x:Name="DetailImage"
                    Aspect="AspectFit"
                    VerticalOptions="Center"
@@ -28,26 +18,18 @@
                 </Image.GestureRecognizers>
             </Image>
         </ScrollView>
-        <!-- Botones de control con mejor diseño -->
-        <Grid RowDefinitions="*,Auto"
-              VerticalOptions="Fill">
-            <StackLayout Grid.Row="1"
-                         VerticalOptions="End"
-                         HorizontalOptions="Center"
-                         Orientation="Horizontal"
-                         Spacing="15"
-                         Margin="0,10,0,20"
-                         BackgroundColor="#80000000"
-                         Padding="15,10">
-                <Button Text="Compartir"
-                        Clicked="OnShareClicked" />
-                <Button Text="Pantalla completa"
-                        Clicked="OnFullScreenClicked" />
-                <Button Text="Eliminar"
-                        Clicked="OnDeleteClicked"
-                        BackgroundColor="Red"
-                        TextColor="White" />
-            </StackLayout>
-        </Grid>
+        <!-- Controles básicos -->
+        <StackLayout VerticalOptions="End"
+                     HorizontalOptions="Center"
+                     Orientation="Horizontal"
+                     Spacing="10"
+                     Margin="0,10,0,20">
+            <Button Text="Compartir"
+                    Clicked="OnShareClicked" />
+            <Button Text="Eliminar"
+                    Clicked="OnDeleteClicked"
+                    BackgroundColor="Red"
+                    TextColor="White" />
+        </StackLayout>
     </Grid>
 </ContentPage>
