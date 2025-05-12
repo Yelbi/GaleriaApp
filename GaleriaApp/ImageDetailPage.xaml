@@ -12,13 +12,11 @@
                      Clicked="OnRotateClicked" />
     </ContentPage.ToolbarItems>
     <Grid>
-        <!-- PinchGestureRecognizer para zoom -->
+        <!-- Imagen con gestos para rotar y pellizcar -->
         <ScrollView x:Name="ImageScrollView"
                     Orientation="Both"
                     HorizontalScrollBarVisibility="Never"
-                    VerticalScrollBarVisibility="Never"
-                    MinimumZoomScale="0.5"
-                    MaximumZoomScale="4">
+                    VerticalScrollBarVisibility="Never">
             <Image x:Name="DetailImage"
                    Aspect="AspectFit"
                    VerticalOptions="Center"
@@ -42,14 +40,13 @@
                          BackgroundColor="#80000000"
                          Padding="15,10">
                 <Button Text="Compartir"
-                        Clicked="OnShareClicked"
-                        Style="{StaticResource PrimaryButton}" />
+                        Clicked="OnShareClicked" />
                 <Button Text="Pantalla completa"
-                        Clicked="OnFullScreenClicked"
-                        Style="{StaticResource PrimaryButton}" />
+                        Clicked="OnFullScreenClicked" />
                 <Button Text="Eliminar"
                         Clicked="OnDeleteClicked"
-                        Style="{StaticResource DangerButton}" />
+                        BackgroundColor="Red"
+                        TextColor="White" />
             </StackLayout>
         </Grid>
     </Grid>

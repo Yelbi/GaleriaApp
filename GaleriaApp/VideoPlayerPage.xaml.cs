@@ -65,8 +65,8 @@ public partial class VideoPlayerPage : ContentPage
         VideoPlayer.Stop();
     }
 
-    // Manejadores para el reproductor
-    private void OnMediaOpened(object sender, MediaOpenedEventArgs e)
+    // Manejadores para el reproductor con tipos correctos de eventos
+    private void OnMediaOpened(object sender, EventArgs e)
     {
         _totalDuration = VideoPlayer.Duration;
         TotalTimeLabel.Text = FormatTimeSpan(_totalDuration);
@@ -74,11 +74,11 @@ public partial class VideoPlayerPage : ContentPage
         ProgressSlider.Value = 0;
     }
 
-    private void OnMediaEnded(object sender, MediaEndedEventArgs e)
+    private void OnMediaEnded(object sender, EventArgs e)
     {
-        PlayPauseButton.Text = "▶";
+        PlayPauseButton.Text = "Reproducir";
         // Opcional: Reiniciar video automáticamente
-        // VideoPlayer.Position = TimeSpan.Zero;
+        // VideoPlayer.SeekTo(TimeSpan.Zero);
         // VideoPlayer.Play();
     }
 
@@ -103,7 +103,7 @@ public partial class VideoPlayerPage : ContentPage
         {
             _isUpdatingSlider = true;
             TimeSpan newPosition = TimeSpan.FromSeconds(e.NewValue * _totalDuration.TotalSeconds);
-            VideoPlayer.Position = newPosition;
+            VideoPlayer.SeekTo(newPosition);
             CurrentTimeLabel.Text = FormatTimeSpan(newPosition);
             _isUpdatingSlider = false;
         }
@@ -114,32 +114,35 @@ public partial class VideoPlayerPage : ContentPage
         if (VideoPlayer.CurrentState == MediaElementState.Playing)
         {
             VideoPlayer.Pause();
-            PlayPauseButton.Text = "▶";
+            PlayPauseButton.Text = "Reproducir";
         }
         else
         {
             VideoPlayer.Play();
-            PlayPauseButton.Text = "⏸";
+            PlayPauseButton.Text = "Pausa";
         }
     }
 
     private void OnRewindClicked(object sender, EventArgs e)
     {
+        TimeSpan newPosition;
         if (VideoPlayer.Position.TotalSeconds >= 10)
         {
-            VideoPlayer.Position = VideoPlayer.Position - TimeSpan.FromSeconds(10);
+            newPosition = VideoPlayer.Position - TimeSpan.FromSeconds(10);
         }
         else
         {
-            VideoPlayer.Position = TimeSpan.Zero;
+            newPosition = TimeSpan.Zero;
         }
+        VideoPlayer.SeekTo(newPosition);
     }
 
     private void OnForwardClicked(object sender, EventArgs e)
     {
         if (VideoPlayer.Position.TotalSeconds + 10 < _totalDuration.TotalSeconds)
         {
-            VideoPlayer.Position = VideoPlayer.Position + TimeSpan.FromSeconds(10);
+            TimeSpan newPosition = VideoPlayer.Position + TimeSpan.FromSeconds(10);
+            VideoPlayer.SeekTo(newPosition);
         }
     }
 

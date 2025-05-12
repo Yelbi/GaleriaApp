@@ -8,8 +8,8 @@ public partial class ImageDetailPage : ContentPage
     private readonly MediaItem _mediaItem;
     private readonly IMediaService _mediaService;
     private bool _isFullscreen = false;
-    private float _currentScale = 1;
-    private float _startScale = 1;
+    private double _currentScale = 1;
+    private double _startScale = 1;
     private double _currentRotation = 0;
 
     // Evento para notificar cuando se elimina un elemento
@@ -68,11 +68,11 @@ public partial class ImageDetailPage : ContentPage
                 // Calcular la nueva escala basada en el factor de pinch
                 _currentScale = _startScale * e.Scale;
 
-                // Limitar la escala entre los valores mínimo y máximo
-                _currentScale = Math.Clamp(_currentScale, (float)ImageScrollView.MinimumZoomScale, (float)ImageScrollView.MaximumZoomScale);
+                // Limitar la escala entre valores razonables
+                _currentScale = Math.Clamp(_currentScale, 0.5, 4.0);
 
-                // Aplicar la escala a la imagen
-                ImageScrollView.ZoomTo(_currentScale, e.ScaleOrigin.X, e.ScaleOrigin.Y, false);
+                // Aplicar la escala directamente a la imagen
+                DetailImage.Scale = _currentScale;
                 break;
         }
     }
@@ -84,13 +84,13 @@ public partial class ImageDetailPage : ContentPage
         {
             // Si está ampliado, volver a escala normal
             _currentScale = 1;
-            ImageScrollView.ZoomTo(1, true);
+            DetailImage.Scale = 1;
         }
         else
         {
             // Ampliar a escala 2x
             _currentScale = 2;
-            ImageScrollView.ZoomTo(2, 0.5, 0.5, true);
+            DetailImage.Scale = 2;
         }
     }
 
@@ -121,4 +121,4 @@ public partial class ImageDetailPage : ContentPage
             Title = _mediaItem.Title;
         }
     }
-}s
+}
