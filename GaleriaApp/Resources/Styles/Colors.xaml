@@ -1,4 +1,4 @@
-﻿<!-- Resources/Styles/Colors.xaml actualizado -->
+﻿<!-- Resources/Styles/Colors.xaml corregido -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
     <!-- Colores Base -->
@@ -22,10 +22,22 @@
     <Color x:Key="DarkCard">#2D2D2D</Color>
     <Color x:Key="DarkBorder">#424242</Color>
     <!-- Colores por tema -->
-    <Color x:Key="Background">{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}</Color>
-    <Color x:Key="Text">{AppThemeBinding Light={StaticResource LightText}, Dark={StaticResource DarkText}}</Color>
-    <Color x:Key="TextSecondary">{AppThemeBinding Light={StaticResource LightTextSecondary}, Dark={StaticResource DarkTextSecondary}}</Color>
-    <Color x:Key="Surface">{AppThemeBinding Light={StaticResource LightSurface}, Dark={StaticResource DarkSurface}}</Color>
-    <Color x:Key="CardBackground">{AppThemeBinding Light={StaticResource LightCard}, Dark={StaticResource DarkCard}}</Color>
-    <Color x:Key="BorderColor">{AppThemeBinding Light={StaticResource LightBorder}, Dark={StaticResource DarkBorder}}</Color>
+    <AppThemeBinding x:Key="Background"
+                     Light="{StaticResource LightBackground}"
+                     Dark="{StaticResource DarkBackground}" />
+    <AppThemeBinding x:Key="Text"
+                     Light="{StaticResource LightText}"
+                     Dark="{StaticResource DarkText}" />
+    <AppThemeBinding x:Key="TextSecondary"
+                     Light="{StaticResource LightTextSecondary}"
+                     Dark="{StaticResource DarkTextSecondary}" />
+    <AppThemeBinding x:Key="Surface"
+                     Light="{StaticResource LightSurface}"
+                     Dark="{StaticResource DarkSurface}" />
+    <AppThemeBinding x:Key="CardBackground"
+                     Light="{StaticResource LightCard}"
+                     Dark="{StaticResource DarkCard}" />
+    <AppThemeBinding x:Key="BorderColor"
+                     Light="{StaticResource LightBorder}"
+                     Dark="{StaticResource DarkBorder}" />
 </ResourceDictionary>

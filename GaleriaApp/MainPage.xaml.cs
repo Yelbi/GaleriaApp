@@ -1,7 +1,6 @@
 ﻿using GaleriaApp.Models;
 using GaleriaApp.Services;
 using GaleriaApp.ViewModels;
-using System.Collections.ObjectModel;
 
 namespace GaleriaApp;
 

@@ -67,15 +67,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-  <MauiXaml Update="MainPage.xaml">
-    <Generator>MSBuild:Compile</Generator>
-  </MauiXaml>
-  <MauiXaml Update="ImageDetailPage.xaml">
-    <Generator>MSBuild:Compile</Generator>
-  </MauiXaml>
-  <MauiXaml Update="VideoPlayerPage.xaml">
-    <Generator>MSBuild:Compile</Generator>
-  </MauiXaml>
-</ItemGroup>
+		<MauiXaml Update="App.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="MainPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="ImageDetailPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="VideoPlayerPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+	</ItemGroup>
 
 </Project>

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-// Nuevo archivo: Services/INavigationService.cs
+﻿// Nuevo archivo: Services/INavigationService.cs
 namespace GaleriaApp.Services
 {
     public interface INavigationService
