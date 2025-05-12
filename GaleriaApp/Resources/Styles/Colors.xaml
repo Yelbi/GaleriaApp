@@ -1,4 +1,4 @@
-﻿<!-- Resources/Styles/Colors.xaml corregido -->
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
     <!-- Colores Base -->
@@ -7,6 +7,15 @@
     <Color x:Key="Secondary">#7209B7</Color>
     <Color x:Key="Tertiary">#F72585</Color>
     <Color x:Key="Accent">#4CC9F0</Color>
+    <!-- Grays -->
+    <Color x:Key="Gray100">#E1E1E1</Color>
+    <Color x:Key="Gray200">#C8C8C8</Color>
+    <Color x:Key="Gray300">#ACACAC</Color>
+    <Color x:Key="Gray400">#919191</Color>
+    <Color x:Key="Gray500">#6E6E6E</Color>
+    <Color x:Key="Gray600">#404040</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    <Color x:Key="Gray950">#141414</Color>
     <!-- Colores para tema claro -->
     <Color x:Key="LightBackground">#FFFFFF</Color>
     <Color x:Key="LightText">#1D1D1D</Color>
@@ -22,22 +31,10 @@
     <Color x:Key="DarkCard">#2D2D2D</Color>
     <Color x:Key="DarkBorder">#424242</Color>
     <!-- Colores por tema -->
-    <AppThemeBinding x:Key="Background"
-                     Light="{StaticResource LightBackground}"
-                     Dark="{StaticResource DarkBackground}" />
-    <AppThemeBinding x:Key="Text"
-                     Light="{StaticResource LightText}"
-                     Dark="{StaticResource DarkText}" />
-    <AppThemeBinding x:Key="TextSecondary"
-                     Light="{StaticResource LightTextSecondary}"
-                     Dark="{StaticResource DarkTextSecondary}" />
-    <AppThemeBinding x:Key="Surface"
-                     Light="{StaticResource LightSurface}"
-                     Dark="{StaticResource DarkSurface}" />
-    <AppThemeBinding x:Key="CardBackground"
-                     Light="{StaticResource LightCard}"
-                     Dark="{StaticResource DarkCard}" />
-    <AppThemeBinding x:Key="BorderColor"
-                     Light="{StaticResource LightBorder}"
-                     Dark="{StaticResource DarkBorder}" />
+    <Color x:Key="Background">#FFFFFF</Color>
+    <Color x:Key="Text">#1D1D1D</Color>
+    <Color x:Key="TextSecondary">#6B6B6B</Color>
+    <Color x:Key="Surface">#F5F5F5</Color>
+    <Color x:Key="CardBackground">#FFFFFF</Color>
+    <Color x:Key="BorderColor">#E0E0E0</Color>
 </ResourceDictionary>

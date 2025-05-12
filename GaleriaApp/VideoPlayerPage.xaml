@@ -3,17 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="GaleriaApp.VideoPlayerPage"
-             Title="Reproducción de Video"
              BackgroundColor="Black">
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Compartir"
-                     Clicked="OnShareClicked" />
-        <ToolbarItem Text="Eliminar"
-                     Clicked="OnDeleteClicked" />
-        <ToolbarItem Text="Pantalla completa"
-                     Clicked="OnFullScreenClicked" />
-    </ContentPage.ToolbarItems>
-    <Grid RowDefinitions="*,Auto,Auto">
+    <Grid RowDefinitions="*,Auto">
         <!-- Reproductor de video -->
         <toolkit:MediaElement x:Name="VideoPlayer"
                               Grid.Row="0"
@@ -24,18 +15,17 @@
                               MediaEnded="OnMediaEnded"
                               MediaFailed="OnMediaFailed"
                               PositionChanged="OnPositionChanged" />
-        <!-- Controles de reproducción personalizados -->
-        <StackLayout Grid.Row="1"
-                     Padding="15"
-                     BackgroundColor="#50000000"
-                     Spacing="10">
+        <!-- Controles básicos -->
+        <VerticalStackLayout Grid.Row="1"
+                             Padding="15"
+                             BackgroundColor="#50000000"
+                             Spacing="10">
             <!-- Barra de progreso -->
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <Label x:Name="CurrentTimeLabel"
                        Grid.Column="0"
                        Text="00:00"
-                       TextColor="White"
-                       VerticalOptions="Center" />
+                       TextColor="White" />
                 <Slider x:Name="ProgressSlider"
                         Grid.Column="1"
                         Maximum="1"
@@ -44,41 +34,44 @@
                 <Label x:Name="TotalTimeLabel"
                        Grid.Column="2"
                        Text="00:00"
-                       TextColor="White"
-                       VerticalOptions="Center" />
+                       TextColor="White" />
             </Grid>
-            <!-- Botones de control de reproducción -->
+            <!-- Botones básicos -->
             <HorizontalStackLayout HorizontalOptions="Center"
                                    Spacing="20">
                 <Button x:Name="RewindButton"
                         Text="Retroceder"
                         Clicked="OnRewindClicked"
-                        CornerRadius="25"
-                        HeightRequest="50" />
+                        BackgroundColor="#512BD4"
+                        TextColor="White" />
                 <Button x:Name="PlayPauseButton"
                         Text="Pausa"
                         Clicked="OnPlayPauseClicked"
-                        CornerRadius="30"
-                        HeightRequest="60"
-                        WidthRequest="100" />
+                        BackgroundColor="#512BD4"
+                        TextColor="White" />
                 <Button x:Name="ForwardButton"
                         Text="Avanzar"
                         Clicked="OnForwardClicked"
-                        CornerRadius="25"
-                        HeightRequest="50" />
+                        BackgroundColor="#512BD4"
+                        TextColor="White" />
             </HorizontalStackLayout>
-        </StackLayout>
-        <!-- Botones adicionales -->
-        <HorizontalStackLayout Grid.Row="2"
-                               HorizontalOptions="Center"
-                               Spacing="15"
-                               Margin="0,10,0,20">
-            <Button Text="Compartir"
-                    Clicked="OnShareClicked" />
-            <Button Text="Eliminar"
-                    Clicked="OnDeleteClicked"
-                    BackgroundColor="Red"
-                    TextColor="White" />
-        </HorizontalStackLayout>
+            <!-- Botones adicionales -->
+            <HorizontalStackLayout HorizontalOptions="Center"
+                                   Spacing="15"
+                                   Margin="0,10,0,0">
+                <Button Text="Compartir"
+                        Clicked="OnShareClicked"
+                        BackgroundColor="#512BD4"
+                        TextColor="White" />
+                <Button Text="Pantalla Completa"
+                        Clicked="OnFullScreenClicked"
+                        BackgroundColor="#512BD4"
+                        TextColor="White" />
+                <Button Text="Eliminar"
+                        Clicked="OnDeleteClicked"
+                        BackgroundColor="Red"
+                        TextColor="White" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
     </Grid>
 </ContentPage>

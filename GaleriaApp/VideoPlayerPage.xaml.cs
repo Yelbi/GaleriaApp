@@ -10,7 +10,6 @@ public partial class VideoPlayerPage : ContentPage
     private readonly MediaItem _mediaItem;
     private readonly IMediaService _mediaService;
     private bool _isUpdatingSlider = false;
-    private bool _isFullscreen = false;
     private TimeSpan _totalDuration = TimeSpan.Zero;
 
     // Evento para notificar cuando se elimina un elemento
@@ -27,34 +26,15 @@ public partial class VideoPlayerPage : ContentPage
         {
             VideoPlayer.Source = MediaSource.FromFile(_mediaItem.Path);
         }
+        else
+        {
+            // Si el video no existe, mostrar un mensaje y volver atrás
+            DisplayAlert("Error", "No se puede cargar el video. El archivo no existe.", "OK");
+            Navigation.PopAsync();
+        }
 
         // Establecer el título
         Title = _mediaItem.Title;
-    }
-
-    private async void OnShareClicked(object sender, EventArgs e)
-    {
-        await Share.RequestAsync(new ShareFileRequest
-        {
-            Title = _mediaItem.Title,
-            File = new ShareFile(_mediaItem.Path)
-        });
-    }
-
-    private async void OnDeleteClicked(object sender, EventArgs e)
-    {
-        bool confirm = await DisplayAlert("Confirmar eliminación",
-            "¿Estás seguro de que quieres eliminar este video?",
-            "Sí", "No");
-
-        if (confirm)
-        {
-            // Notificar a la página principal que se eliminó este elemento
-            MediaDeleted?.Invoke(this, _mediaItem.Id);
-
-            // Regresar a la página anterior
-            await Navigation.PopAsync();
-        }
     }
 
     protected override void OnDisappearing()
@@ -65,7 +45,49 @@ public partial class VideoPlayerPage : ContentPage
         VideoPlayer.Stop();
     }
 
-    // Manejadores para el reproductor con tipos correctos de eventos
+    private async void OnShareClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            await Share.RequestAsync(new ShareFileRequest
+            {
+                Title = _mediaItem.Title,
+                File = new ShareFile(_mediaItem.Path)
+            });
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"No se pudo compartir el video: {ex.Message}", "OK");
+        }
+    }
+
+    private async void OnDeleteClicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Confirmar eliminación",
+            "¿Estás seguro de que quieres eliminar este video?",
+            "Sí", "No");
+
+        if (confirm)
+        {
+            try
+            {
+                // Detener el video antes de eliminarlo
+                VideoPlayer.Stop();
+
+                // Notificar a la página principal que se eliminó este elemento
+                MediaDeleted?.Invoke(this, _mediaItem.Id);
+
+                // Regresar a la página anterior
+                await Navigation.PopAsync();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"No se pudo eliminar el video: {ex.Message}", "OK");
+            }
+        }
+    }
+
+    // Manejadores para el reproductor
     private void OnMediaOpened(object sender, EventArgs e)
     {
         _totalDuration = VideoPlayer.Duration;
@@ -77,9 +99,6 @@ public partial class VideoPlayerPage : ContentPage
     private void OnMediaEnded(object sender, EventArgs e)
     {
         PlayPauseButton.Text = "Reproducir";
-        // Opcional: Reiniciar video automáticamente
-        // VideoPlayer.SeekTo(TimeSpan.Zero);
-        // VideoPlayer.Play();
     }
 
     private void OnMediaFailed(object sender, MediaFailedEventArgs e)
@@ -120,6 +139,12 @@ public partial class VideoPlayerPage : ContentPage
         {
             VideoPlayer.Play();
             PlayPauseButton.Text = "Pausa";
+
+            // Si llegó al final, reiniciar
+            if (VideoPlayer.Position >= _totalDuration)
+            {
+                VideoPlayer.SeekTo(TimeSpan.Zero);
+            }
         }
     }
 
@@ -144,13 +169,18 @@ public partial class VideoPlayerPage : ContentPage
             TimeSpan newPosition = VideoPlayer.Position + TimeSpan.FromSeconds(10);
             VideoPlayer.SeekTo(newPosition);
         }
+        else
+        {
+            // Si estamos casi al final, ir al final
+            VideoPlayer.SeekTo(_totalDuration);
+        }
     }
 
     private void OnFullScreenClicked(object sender, EventArgs e)
     {
-        _isFullscreen = !_isFullscreen;
+        bool isFullscreen = Shell.GetNavBarIsVisible(this);
 
-        if (_isFullscreen)
+        if (isFullscreen)
         {
             // Ocultar elementos de navegación
             Shell.SetNavBarIsVisible(this, false);
