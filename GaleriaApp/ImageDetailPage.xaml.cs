@@ -7,6 +7,10 @@ public partial class ImageDetailPage : ContentPage
 {
     private readonly MediaItem _mediaItem;
     private readonly IMediaService _mediaService;
+    private bool _isFullscreen = false;
+    private float _currentScale = 1;
+    private float _startScale = 1;
+    private double _currentRotation = 0;
 
     // Evento para notificar cuando se elimina un elemento
     public event EventHandler<string>? MediaDeleted;
@@ -51,4 +55,70 @@ public partial class ImageDetailPage : ContentPage
             await Navigation.PopAsync();
         }
     }
-}
+
+    // Manejador del gesto de pellizco para zoom
+    private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+    {
+        switch (e.Status)
+        {
+            case GestureStatus.Started:
+                _startScale = _currentScale;
+                break;
+            case GestureStatus.Running:
+                // Calcular la nueva escala basada en el factor de pinch
+                _currentScale = _startScale * e.Scale;
+
+                // Limitar la escala entre los valores mínimo y máximo
+                _currentScale = Math.Clamp(_currentScale, (float)ImageScrollView.MinimumZoomScale, (float)ImageScrollView.MaximumZoomScale);
+
+                // Aplicar la escala a la imagen
+                ImageScrollView.ZoomTo(_currentScale, e.ScaleOrigin.X, e.ScaleOrigin.Y, false);
+                break;
+        }
+    }
+
+    // Manejador para doble toque (zoom rápido)
+    private void OnDoubleTapped(object sender, TappedEventArgs e)
+    {
+        if (_currentScale > 1)
+        {
+            // Si está ampliado, volver a escala normal
+            _currentScale = 1;
+            ImageScrollView.ZoomTo(1, true);
+        }
+        else
+        {
+            // Ampliar a escala 2x
+            _currentScale = 2;
+            ImageScrollView.ZoomTo(2, 0.5, 0.5, true);
+        }
+    }
+
+    // Nuevo método para rotación
+    private void OnRotateClicked(object sender, EventArgs e)
+    {
+        _currentRotation = (_currentRotation + 90) % 360;
+        DetailImage.Rotation = _currentRotation;
+    }
+
+    // Nuevo método para pantalla completa
+    private void OnFullScreenClicked(object sender, EventArgs e)
+    {
+        _isFullscreen = !_isFullscreen;
+
+        if (_isFullscreen)
+        {
+            // Ocultar elementos de navegación
+            Shell.SetNavBarIsVisible(this, false);
+            Shell.SetTabBarIsVisible(this, false);
+            Title = string.Empty;
+        }
+        else
+        {
+            // Mostrar elementos de navegación
+            Shell.SetNavBarIsVisible(this, true);
+            Shell.SetTabBarIsVisible(this, true);
+            Title = _mediaItem.Title;
+        }
+    }
+}s
