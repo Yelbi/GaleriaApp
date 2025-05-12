@@ -70,8 +70,10 @@
         <!-- Vista de colección principal con efecto de carga y sin elementos -->
         <Grid Grid.Row="2">
             <!-- Vista principal de la colección -->
-            <CollectionView ItemsSource="{Binding MediaItems}"
+            <CollectionView x:Name="MediaCollection"
+                            ItemsSource="{Binding MediaItems}"
                             SelectionMode="Single"
+                            SelectionChanged="OnMediaSelected"
                             SelectionChangedCommand="{Binding MediaSelectedCommand}"
                             SelectionChangedCommandParameter="{Binding SelectedItem, Source={RelativeSource Self}}"
                             IsVisible="{Binding IsNotBusy}">

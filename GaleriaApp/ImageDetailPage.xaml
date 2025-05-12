@@ -1,4 +1,3 @@
-<!-- ImageDetailPage.xaml actualizado -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="GaleriaApp.ImageDetailPage"
@@ -11,61 +10,28 @@
                      Clicked="OnDeleteClicked" />
     </ContentPage.ToolbarItems>
     <Grid>
-        <!-- PinchToZoom Image View -->
+        <!-- Imagen con capacidad de desplazamiento -->
         <ScrollView x:Name="ImageScrollView"
-                    ZoomEnabled="True"
-                    MinZoomScale="0.5"
-                    MaxZoomScale="3.0">
+                    Orientation="Both"
+                    HorizontalScrollBarVisibility="Never"
+                    VerticalScrollBarVisibility="Never">
             <Image x:Name="DetailImage"
                    Aspect="AspectFit"
                    VerticalOptions="Center"
                    HorizontalOptions="Center" />
         </ScrollView>
-        <!-- Info overlay (visible al tocar) -->
+        <!-- Botones de control -->
         <StackLayout VerticalOptions="End"
-                     BackgroundColor="#80000000"
-                     Padding="15"
-                     IsVisible="{Binding IsInfoVisible}">
-            <Label Text="{Binding MediaItem.Title}"
-                   FontSize="18"
-                   FontAttributes="Bold"
-                   TextColor="White" />
-            <Label Text="{Binding MediaItem.DateCreated, StringFormat='Creado: {0:dd MMMM yyyy HH:mm}'}"
-                   FontSize="14"
-                   TextColor="LightGray" />
-            <Label Text="{Binding Resolution}"
-                   FontSize="14"
-                   TextColor="LightGray" />
+                     HorizontalOptions="Center"
+                     Orientation="Horizontal"
+                     Spacing="10"
+                     Margin="0,10,0,20">
+            <Button Text="Compartir"
+                    Clicked="OnShareClicked" />
+            <Button Text="Eliminar"
+                    Clicked="OnDeleteClicked"
+                    BackgroundColor="Red"
+                    TextColor="White" />
         </StackLayout>
-        <!-- Controles de edición (visibles en modo edición) -->
-        <Grid VerticalOptions="End"
-              BackgroundColor="#80000000"
-              IsVisible="{Binding IsEditMode}">
-            <HorizontalStackLayout HorizontalOptions="Center"
-                                   Spacing="15"
-                                   Margin="0,15">
-                <Button Text="Rotar"
-                        Command="{Binding RotateCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="White" />
-                <Button Text="Filtros"
-                        Command="{Binding FiltersCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="White" />
-                <Button Text="Recortar"
-                        Command="{Binding CropCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="White" />
-            </HorizontalStackLayout>
-        </Grid>
-        <!-- Gestos y controles -->
-        <Grid.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding ToggleInfoCommand}"
-                                  NumberOfTapsRequired="1" />
-            <SwipeGestureRecognizer Direction="Left"
-                                    Command="{Binding NextImageCommand}" />
-            <SwipeGestureRecognizer Direction="Right"
-                                    Command="{Binding PreviousImageCommand}" />
-        </Grid.GestureRecognizers>
     </Grid>
 </ContentPage>

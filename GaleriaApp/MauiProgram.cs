@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui;
 using GaleriaApp.Services;
+using GaleriaApp.ViewModels; // Añadir este using
 using Microsoft.Extensions.Logging;
+
 namespace GaleriaApp;
 
 public static class MauiProgram
