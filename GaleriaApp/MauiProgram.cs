@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using GaleriaApp.Services;
-using GaleriaApp.ViewModels; // Añadir este using
+using GaleriaApp.ViewModels;
 using Microsoft.Extensions.Logging;
 
 namespace GaleriaApp;
@@ -41,6 +41,14 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        try
+        {
+            return builder.Build();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error building MAUI app: {ex}");
+            throw;
+        }
     }
 }
