@@ -1,5 +1,8 @@
 ﻿using GaleriaApp.Models;
 using GaleriaApp.Services;
+using CommunityToolkit.Maui.Core; // Añade esto
+using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Views; // Añade esto para MediaSource
 
 namespace GaleriaApp;
 

@@ -23,7 +23,7 @@ namespace GaleriaApp.Services
             return new List<MediaItem>();
         }
 
-        public async Task<FileResult> PickPhotoAsync()
+        public async Task<FileResult?> PickPhotoAsync() // Cambia el tipo de retorno
         {
             try
             {
@@ -37,7 +37,7 @@ namespace GaleriaApp.Services
             }
         }
 
-        public async Task<FileResult> PickVideoAsync()
+        public async Task<FileResult?> PickVideoAsync() // Cambia el tipo de retorno
         {
             try
             {

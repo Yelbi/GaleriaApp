@@ -3,22 +3,24 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="GaleriaApp.VideoPlayerPage"
-             Title="Reproducción de Video">
+             Title="ReproducciÃ³n de Video">
+    
     <Grid RowDefinitions="*,Auto">
         <!-- Reproductor de video -->
-        <toolkit:MediaElement x:Name="VideoPlayer"
-                              Grid.Row="0"
-                              ShouldAutoPlay="True"
-                              ShouldShowPlaybackControls="True" />
+        <toolkit:MediaElement
+            x:Name="VideoPlayer"
+            Grid.Row="0"
+            ShouldAutoPlay="True"
+            ShouldShowPlaybackControls="True" />
+        
         <!-- Botones de control -->
         <HorizontalStackLayout Grid.Row="1"
-                               HorizontalOptions="Center"
-                               Spacing="10"
-                               Margin="0,10,0,20">
-            <Button Text="Compartir"
-                    Clicked="OnShareClicked" />
-            <Button Text="Eliminar"
-                    Clicked="OnDeleteClicked"
+                              HorizontalOptions="Center"
+                              Spacing="10"
+                              Margin="0,10,0,20">
+            <Button Text="Compartir" Clicked="OnShareClicked" />
+            <Button Text="Eliminar" 
+                    Clicked="OnDeleteClicked" 
                     BackgroundColor="Red"
                     TextColor="White" />
         </HorizontalStackLayout>

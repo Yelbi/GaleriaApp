@@ -3,30 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="GaleriaApp.ImageDetailPage"
              Title="Detalle de Imagen">
-    <Grid RowDefinitions="*,Auto">
-        <!-- Imagen con zoom -->
-        <ScrollView Grid.Row="0"
+
+	<Grid RowDefinitions="*,Auto">
+		<!-- Imagen con zoom -->
+		<ScrollView Grid.Row="0"
                     HorizontalScrollBarVisibility="Never"
                     VerticalScrollBarVisibility="Never"
-                    Orientation="Both"
-                    MinZoomScale="1"
-                    MaxZoomScale="4">
-            <Image x:Name="DetailImage"
+                    Orientation="Both">
+			<Image x:Name="DetailImage"
                    Aspect="AspectFit"
                    VerticalOptions="Center"
                    HorizontalOptions="Center" />
-        </ScrollView>
-        <!-- Botones de control -->
-        <HorizontalStackLayout Grid.Row="1"
+		</ScrollView>
+
+		<!-- Botones de control -->
+		<HorizontalStackLayout Grid.Row="1"
                                HorizontalOptions="Center"
                                Spacing="10"
                                Margin="0,10,0,20">
-            <Button Text="Compartir"
+			<Button Text="Compartir"
                     Clicked="OnShareClicked" />
-            <Button Text="Eliminar"
+			<Button Text="Eliminar"
                     Clicked="OnDeleteClicked"
                     BackgroundColor="Red"
                     TextColor="White" />
-        </HorizontalStackLayout>
-    </Grid>
+		</HorizontalStackLayout>
+	</Grid>
 </ContentPage>

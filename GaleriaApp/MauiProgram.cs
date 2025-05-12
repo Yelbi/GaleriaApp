@@ -1,8 +1,6 @@
 ﻿using GaleriaApp.Services;
 using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.MediaElement;
-
 namespace GaleriaApp;
 
 public static class MauiProgram
@@ -12,7 +10,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseMauiCommunityToolkit()
+            .UseMauiCommunityToolkit() // Usa esto en lugar de UseMauiCommunityToolkitCore
             .UseMauiCommunityToolkitMediaElement()
             .ConfigureFonts(fonts =>
             {
@@ -20,16 +18,10 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Registrar el servicio
+        // Registrar servicios y páginas
         builder.Services.AddSingleton<IMediaService, MediaService>();
-
-        // Registrar la página principal
-        builder.Services.AddSingleton<MainPage>();
-
-        // Añadir a las líneas existentes de registro de servicios
         builder.Services.AddSingleton<IStorageService, LocalStorageService>();
-
-        // Registrar las nuevas páginas
+        builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<ImageDetailPage>();
         builder.Services.AddTransient<VideoPlayerPage>();
 
