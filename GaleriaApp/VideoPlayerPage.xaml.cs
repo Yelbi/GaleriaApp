@@ -1,8 +1,6 @@
-﻿using GaleriaApp.Models;
+﻿using CommunityToolkit.Maui.Views; // Añade esto para MediaSource
+using GaleriaApp.Models;
 using GaleriaApp.Services;
-using CommunityToolkit.Maui.Core; // Añade esto
-using CommunityToolkit.Maui.Core.Primitives;
-using CommunityToolkit.Maui.Views; // Añade esto para MediaSource
 
 namespace GaleriaApp;
 
@@ -12,7 +10,7 @@ public partial class VideoPlayerPage : ContentPage
     private readonly IMediaService _mediaService;
 
     // Evento para notificar cuando se elimina un elemento
-    public event EventHandler<string> MediaDeleted;
+    public event EventHandler<string>? MediaDeleted;
 
     public VideoPlayerPage(MediaItem mediaItem, IMediaService mediaService)
     {

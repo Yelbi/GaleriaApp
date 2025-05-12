@@ -22,10 +22,11 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame Margin="5"
-                           Padding="0"
-                           CornerRadius="10"
-                           IsClippedToBounds="True">
+                    <Border Margin="5"
+                            Padding="0"
+                            StrokeShape="RoundRectangle 10"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
                         <Grid RowDefinitions="*,Auto">
                             <!-- Imagen con indicador de video si es necesario -->
                             <Grid>
@@ -50,7 +51,7 @@
                                        TextColor="Gray" />
                             </StackLayout>
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
             <CollectionView.EmptyView>

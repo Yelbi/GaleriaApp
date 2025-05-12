@@ -9,7 +9,7 @@ public partial class ImageDetailPage : ContentPage
     private readonly IMediaService _mediaService;
 
     // Evento para notificar cuando se elimina un elemento
-    public event EventHandler<string> MediaDeleted;
+    public event EventHandler<string>? MediaDeleted;
 
     public ImageDetailPage(MediaItem mediaItem, IMediaService mediaService)
     {

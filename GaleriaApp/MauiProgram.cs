@@ -1,6 +1,6 @@
-﻿using GaleriaApp.Services;
+﻿using CommunityToolkit.Maui;
+using GaleriaApp.Services;
 using Microsoft.Extensions.Logging;
-using CommunityToolkit.Maui;
 namespace GaleriaApp;
 
 public static class MauiProgram

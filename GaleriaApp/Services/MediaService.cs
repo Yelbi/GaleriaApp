@@ -1,5 +1,4 @@
 ﻿using GaleriaApp.Models;
-using Microsoft.Maui.Storage;
 
 namespace GaleriaApp.Services
 {

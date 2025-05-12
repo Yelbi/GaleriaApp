@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using GaleriaApp.Models;
+﻿using GaleriaApp.Models;
+using System.Text.Json;
 
 namespace GaleriaApp.Services
 {
