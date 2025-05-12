@@ -1,13 +1,16 @@
 ﻿using GaleriaApp.Models;
 using GaleriaApp.Services;
+using GaleriaApp.ViewModels;
+using System.Collections.ObjectModel;
 
 namespace GaleriaApp;
 
 public partial class MainPage : ContentPage
 {
+    private readonly MainViewModel _viewModel;
     private readonly IMediaService _mediaService;
     private readonly IStorageService _storageService;
-    private List<MediaItem> _mediaItems = new List<MediaItem>();
+    private bool _isSearchActive = false;
 
     public MainPage(IMediaService mediaService, IStorageService storageService)
     {
@@ -15,17 +18,27 @@ public partial class MainPage : ContentPage
         _mediaService = mediaService;
         _storageService = storageService;
 
+        // Inicializar el ViewModel
+        _viewModel = new MainViewModel(mediaService, storageService);
+        BindingContext = _viewModel;
+
         // Cargar medios guardados al iniciar
         LoadSavedMediaAsync();
     }
 
     private async Task LoadSavedMediaAsync()
     {
-        _mediaItems = await _storageService.LoadMediaListAsync();
-        MediaCollection.ItemsSource = _mediaItems;
+        var mediaItems = await _storageService.LoadMediaListAsync();
+        _viewModel.LoadMediaItems(mediaItems);
+        MediaCollection.ItemsSource = _viewModel.MediaItems;
     }
 
     private async void OnSelectPhotoClicked(object sender, EventArgs e)
+    {
+        await ExecuteSelectPhotoCommand();
+    }
+
+    private async Task ExecuteSelectPhotoCommand()
     {
         var photo = await _mediaService.PickPhotoAsync();
         if (photo != null)
@@ -40,15 +53,20 @@ public partial class MainPage : ContentPage
                 DateCreated = DateTime.Now
             };
 
-            _mediaItems.Add(newItem);
+            _viewModel.AddMediaItem(newItem);
             RefreshMediaCollection();
 
             // Guardar cambios
-            await _storageService.SaveMediaListAsync(_mediaItems);
+            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
         }
     }
 
     private async void OnSelectVideoClicked(object sender, EventArgs e)
+    {
+        await ExecuteSelectVideoCommand();
+    }
+
+    private async Task ExecuteSelectVideoCommand()
     {
         var video = await _mediaService.PickVideoAsync();
         if (video != null)
@@ -63,18 +81,18 @@ public partial class MainPage : ContentPage
                 DateCreated = DateTime.Now
             };
 
-            _mediaItems.Add(newItem);
+            _viewModel.AddMediaItem(newItem);
             RefreshMediaCollection();
 
             // Guardar cambios
-            await _storageService.SaveMediaListAsync(_mediaItems);
+            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
         }
     }
 
     private void RefreshMediaCollection()
     {
         MediaCollection.ItemsSource = null;
-        MediaCollection.ItemsSource = _mediaItems;
+        MediaCollection.ItemsSource = _viewModel.MediaItems;
     }
 
     private async void OnMediaSelected(object sender, SelectionChangedEventArgs e)
@@ -89,7 +107,7 @@ public partial class MainPage : ContentPage
                 // Suscribirse al evento de eliminación
                 detailPage.MediaDeleted += async (s, itemId) =>
                 {
-                    await DeleteMediaItem(itemId);
+                    await DeleteMediaItemAsync(itemId);
                 };
 
                 await Navigation.PushAsync(detailPage);
@@ -101,7 +119,7 @@ public partial class MainPage : ContentPage
                 // Suscribirse al evento de eliminación
                 playerPage.MediaDeleted += async (s, itemId) =>
                 {
-                    await DeleteMediaItem(itemId);
+                    await DeleteMediaItemAsync(itemId);
                 };
 
                 await Navigation.PushAsync(playerPage);
@@ -112,16 +130,104 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async Task DeleteMediaItem(string itemId)
+    private async Task DeleteMediaItemAsync(string itemId)
     {
-        var itemToRemove = _mediaItems.FirstOrDefault(item => item.Id == itemId);
-        if (itemToRemove != null)
-        {
-            _mediaItems.Remove(itemToRemove);
-            RefreshMediaCollection();
+        _viewModel.RemoveMediaItem(itemId);
+        RefreshMediaCollection();
 
-            // Guardar los cambios
-            await _storageService.SaveMediaListAsync(_mediaItems);
+        // Guardar los cambios
+        await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+    }
+
+    // Nuevos métodos para funciones de UI mejoradas
+    private void OnSearchToggleClicked(object sender, EventArgs e)
+    {
+        _isSearchActive = !_isSearchActive;
+        _viewModel.IsSearchActive = _isSearchActive;
+    }
+
+    private void OnGridViewClicked(object sender, EventArgs e)
+    {
+        _viewModel.GridSpan = 2; // Vista de cuadrícula con 2 columnas
+        _viewModel.IsGridView = true;
+        _viewModel.IsListView = false;
+    }
+
+    private void OnListViewClicked(object sender, EventArgs e)
+    {
+        _viewModel.GridSpan = 1; // Vista de lista con 1 columna
+        _viewModel.IsGridView = false;
+        _viewModel.IsListView = true;
+    }
+
+    private async void OnMoreOptionsClicked(object sender, EventArgs e)
+    {
+        string action = await DisplayActionSheet(
+            "Opciones adicionales",
+            "Cancelar",
+            null,
+            "Crear nuevo álbum",
+            "Ordenar por fecha",
+            "Ordenar por nombre",
+            "Preferencias",
+            "Acerca de");
+
+        switch (action)
+        {
+            case "Crear nuevo álbum":
+                await HandleCreateAlbum();
+                break;
+            case "Ordenar por fecha":
+                _viewModel.SortByDate();
+                break;
+            case "Ordenar por nombre":
+                _viewModel.SortByName();
+                break;
+            case "Preferencias":
+                await HandlePreferences();
+                break;
+            case "Acerca de":
+                await DisplayAlert("Acerca de", "GaleriaApp v1.0\nUna aplicación para gestionar tus fotos y videos.", "Cerrar");
+                break;
+        }
+    }
+
+    private async Task HandleCreateAlbum()
+    {
+        string albumName = await DisplayPromptAsync(
+            "Nuevo Álbum",
+            "Introduce un nombre para el álbum:",
+            accept: "Crear",
+            cancel: "Cancelar");
+
+        if (!string.IsNullOrWhiteSpace(albumName))
+        {
+            // Aquí iría la lógica para crear el álbum
+            await DisplayAlert("Álbum Creado", $"El álbum '{albumName}' ha sido creado.", "OK");
+        }
+    }
+
+    private async Task HandlePreferences()
+    {
+        string action = await DisplayActionSheet(
+            "Preferencias",
+            "Cancelar",
+            null,
+            "Tema claro",
+            "Tema oscuro",
+            "Usar tema del sistema");
+
+        switch (action)
+        {
+            case "Tema claro":
+                Application.Current.UserAppTheme = AppTheme.Light;
+                break;
+            case "Tema oscuro":
+                Application.Current.UserAppTheme = AppTheme.Dark;
+                break;
+            case "Usar tema del sistema":
+                Application.Current.UserAppTheme = AppTheme.Unspecified;
+                break;
         }
     }
 }

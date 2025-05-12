@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:GaleriaApp.ViewModels"
              xmlns:converters="clr-namespace:GaleriaApp.Converters"
+             xmlns:models="clr-namespace:GaleriaApp.Models"
              x:Class="GaleriaApp.MainPage"
-             x:DataType="vm:MainViewModel"
              Title="Mi Galería">
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -95,20 +95,20 @@
                                            Aspect="AspectFill"
                                            HeightRequest="180" />
                                     <!-- Video indicator overlay -->
-                                    <Grid IsVisible="{Binding Type, Converter={StaticResource StringEqualConverter}, ConverterParameter='Video'}"
-                                          BackgroundColor="#80000000"
-                                          HorizontalOptions="Center"
-                                          VerticalOptions="Center"
-                                          WidthRequest="50"
-                                          HeightRequest="50"
-                                          CornerRadius="25">
+                                    <Border IsVisible="{Binding Type, Converter={StaticResource StringEqualConverter}, ConverterParameter='Video'}"
+                                            BackgroundColor="#80000000"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            WidthRequest="50"
+                                            HeightRequest="50"
+                                            StrokeShape="RoundRectangle 25">
                                         <Label Text="&#xf04b;"
                                                FontFamily="FontAwesome"
                                                FontSize="20"
                                                TextColor="White"
                                                HorizontalOptions="Center"
                                                VerticalOptions="Center" />
-                                    </Grid>
+                                    </Border>
                                 </Grid>
                                 <!-- Info footer -->
                                 <StackLayout Grid.Row="1"

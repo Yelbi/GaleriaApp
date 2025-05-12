@@ -37,24 +37,36 @@ namespace GaleriaApp.Services
             if (File.Exists(thumbnailPath))
                 return thumbnailPath;
 
-            // Si no, crear el thumbnail
+            // En una implementación real, aquí se crearía el thumbnail
+            // Por ahora, simplemente devolvemos el original para evitar errores
+            return originalPath;
+        }
+
+        public async Task ClearCacheAsync()
+        {
             try
             {
-                // Esta es una implementación simplificada, aquí iría el código real
-                // para redimensionar la imagen y guardarla en caché
-                using var originalImage = await LoadImageAsync(originalPath);
-                using var thumbnail = ResizeImage(originalImage, size);
-                await SaveImageAsync(thumbnail, thumbnailPath);
-
-                return thumbnailPath;
+                if (Directory.Exists(_cacheFolder))
+                {
+                    var files = Directory.GetFiles(_cacheFolder);
+                    foreach (var file in files)
+                    {
+                        File.Delete(file);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creando thumbnail: {ex.Message}");
-                return originalPath; // En caso de error, devolver el original
+                Console.WriteLine($"Error al limpiar caché: {ex.Message}");
             }
         }
 
-        // Implementación de los demás métodos...
+        public async Task PreloadThumbnailsAsync(IEnumerable<string> imagePaths)
+        {
+            foreach (var path in imagePaths)
+            {
+                await GetThumbnailPathAsync(path);
+            }
+        }
     }
 }

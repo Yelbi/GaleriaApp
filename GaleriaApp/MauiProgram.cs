@@ -10,17 +10,27 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseMauiCommunityToolkit() // Usa esto en lugar de UseMauiCommunityToolkitCore
+            .UseMauiCommunityToolkit()
             .UseMauiCommunityToolkitMediaElement()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                // Agregar fuente de FontAwesome si la vas a usar
+                fonts.AddFont("FontAwesome.ttf", "FontAwesome");
             });
 
-        // Registrar servicios y páginas
+        // Registrar servicios
         builder.Services.AddSingleton<IMediaService, MediaService>();
         builder.Services.AddSingleton<IStorageService, LocalStorageService>();
+        builder.Services.AddSingleton<IImageCacheService, ImageCacheService>();
+        builder.Services.AddSingleton<IPermissionsService, PermissionsService>();
+        builder.Services.AddSingleton<IThemeService, ThemeService>();
+
+        // Registrar ViewModels
+        builder.Services.AddSingleton<MainViewModel>();
+
+        // Registrar páginas
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<ImageDetailPage>();
         builder.Services.AddTransient<VideoPlayerPage>();

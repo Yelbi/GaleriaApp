@@ -1,28 +1,26 @@
 <!-- ImageDetailPage.xaml actualizado -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:GaleriaApp.ViewModels"
              x:Class="GaleriaApp.ImageDetailPage"
-             x:DataType="vm:ImageDetailViewModel"
-             Title="{Binding Title}"
+             Title="Detalle de Imagen"
              BackgroundColor="Black">
     <ContentPage.ToolbarItems>
-        <ToolbarItem IconImageSource="share_icon.png"
-                     Command="{Binding ShareCommand}" />
-        <ToolbarItem IconImageSource="favorite_icon.png"
-                     Command="{Binding ToggleFavoriteCommand}" />
-        <ToolbarItem IconImageSource="edit_icon.png"
-                     Command="{Binding EditImageCommand}" />
+        <ToolbarItem Text="Compartir"
+                     Clicked="OnShareClicked" />
+        <ToolbarItem Text="Eliminar"
+                     Clicked="OnDeleteClicked" />
     </ContentPage.ToolbarItems>
     <Grid>
         <!-- PinchToZoom Image View -->
-        <PinchToZoom>
-            <Image Source="{Binding ImageSource}"
+        <ScrollView x:Name="ImageScrollView"
+                    ZoomEnabled="True"
+                    MinZoomScale="0.5"
+                    MaxZoomScale="3.0">
+            <Image x:Name="DetailImage"
                    Aspect="AspectFit"
                    VerticalOptions="Center"
-                   HorizontalOptions="Center"
-                   BackgroundColor="Black" />
-        </PinchToZoom>
+                   HorizontalOptions="Center" />
+        </ScrollView>
         <!-- Info overlay (visible al tocar) -->
         <StackLayout VerticalOptions="End"
                      BackgroundColor="#80000000"
