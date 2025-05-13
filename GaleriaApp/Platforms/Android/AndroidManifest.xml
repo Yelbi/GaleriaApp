@@ -5,7 +5,8 @@
                  android:roundIcon="@mipmap/appicon_round"
                  android:supportsRtl="true"
                  android:largeHeap="true"
-                 android:hardwareAccelerated="true">
+                 android:hardwareAccelerated="true"
+                 android:extractNativeLibs="true">
 		<!-- Habilitar aceleración de hardware para mejor rendimiento de video -->
 		<activity android:name="com.companyname.galeriaapp.MainActivity"
                   android:hardwareAccelerated="true"

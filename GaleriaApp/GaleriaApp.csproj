@@ -30,6 +30,8 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+		<UseNativeHttpHandler>false</UseNativeHttpHandler>
+		<AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -70,8 +72,8 @@
 			<DependentUpon>AppShell.xaml</DependentUpon>
 		</Compile>
 		<Compile Update="MainPage.xaml.cs">
-            <DependentUpon>MainPage.xaml</DependentUpon>
-        </Compile>
+			<DependentUpon>MainPage.xaml</DependentUpon>
+		</Compile>
 		<Compile Update="ImageDetailPage.xaml.cs">
 			<DependentUpon>ImageDetailPage.xaml</DependentUpon>
 		</Compile>
@@ -88,8 +90,8 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 		<MauiXaml Update="MainPage.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </MauiXaml>
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 		<MauiXaml Update="ImageDetailPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
@@ -97,5 +99,11 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 	</ItemGroup>
+
+	<Target Name="FixAndroidBinding" BeforeTargets="XamarinPrepareDeps" Condition="'$(TargetFramework)' == 'net9.0-android'">
+		<ItemGroup>
+			<AndroidJavaLibrary Remove="@(AndroidJavaLibrary)" />
+		</ItemGroup>
+	</Target>
 
 </Project>

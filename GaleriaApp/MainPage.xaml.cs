@@ -1,287 +1,298 @@
 ﻿using GaleriaApp.Models;
 using GaleriaApp.Services;
 using GaleriaApp.ViewModels;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 
 namespace GaleriaApp
 {
     public partial class MainPage : ContentPage
     {
         private readonly MainViewModel _viewModel;
-    private readonly IMediaService _mediaService;
-    private readonly IStorageService _storageService;
-    private bool _isSearchActive = false;
+        private readonly IMediaService _mediaService;
+        private readonly IStorageService _storageService;
+        private bool _isSearchActive = false;
 
-    public MainPage(IMediaService mediaService, IStorageService storageService)
-    {
-        InitializeComponent();
-        _mediaService = mediaService;
-        _storageService = storageService;
-
-        // Inicializar el ViewModel
-        _viewModel = new MainViewModel(mediaService, storageService);
-        BindingContext = _viewModel;
-
-        // Cargar medios guardados al iniciar
-        LoadSavedMediaAsync();
-    }
-
-    private async Task LoadSavedMediaAsync()
-    {
-        var mediaItems = await _storageService.LoadMediaListAsync();
-        _viewModel.LoadMediaItems(mediaItems);
-        MediaCollection.ItemsSource = _viewModel.MediaItems;
-    }
-
-    private async void OnSelectPhotoClicked(object sender, EventArgs e)
-    {
-        await ExecuteSelectPhotoCommand();
-    }
-
-    private async Task ExecuteSelectPhotoCommand()
-    {
-        var photo = await _mediaService.PickPhotoAsync();
-        if (photo != null)
+        public MainPage(IMediaService mediaService, IStorageService storageService)
         {
-            // Añadir a nuestra colección
-            var newItem = new MediaItem
-            {
-                Id = Guid.NewGuid().ToString(),
-                Title = Path.GetFileName(photo.FileName),
-                Path = photo.FullPath,
-                Type = "Image",
-                DateCreated = DateTime.Now
-            };
+            // Inicializar componentes first
+            InitializeComponent();
 
-            _viewModel.AddMediaItem(newItem);
-            RefreshMediaCollection();
+            _mediaService = mediaService;
+            _storageService = storageService;
 
-            // Guardar cambios
-            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+            // Inicializar el ViewModel
+            _viewModel = new MainViewModel(mediaService, storageService);
+            BindingContext = _viewModel;
+
+            // Cargar medios guardados al iniciar
+            LoadSavedMediaAsync();
         }
-    }
 
-    private async void OnSelectVideoClicked(object sender, EventArgs e)
-    {
-        await ExecuteSelectVideoCommand();
-    }
-
-    private async Task ExecuteSelectVideoCommand()
-    {
-        var video = await _mediaService.PickVideoAsync();
-        if (video != null)
+        private async Task LoadSavedMediaAsync()
         {
-            // Añadir a nuestra colección
-            var newItem = new MediaItem
+            try
             {
-                Id = Guid.NewGuid().ToString(),
-                Title = Path.GetFileName(video.FileName),
-                Path = video.FullPath,
-                Type = "Video",
-                DateCreated = DateTime.Now
-            };
-
-            _viewModel.AddMediaItem(newItem);
-            RefreshMediaCollection();
-
-            // Guardar cambios
-            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+                var mediaItems = await _storageService.LoadMediaListAsync();
+                _viewModel.LoadMediaItems(mediaItems);
+                MediaCollection.ItemsSource = _viewModel.MediaItems;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading media: {ex.Message}");
+            }
         }
-    }
 
-    private void RefreshMediaCollection()
-    {
-        MediaCollection.ItemsSource = null;
-        MediaCollection.ItemsSource = _viewModel.MediaItems;
-    }
-
-    private async void OnMediaSelected(object sender, SelectionChangedEventArgs e)
-    {
-        if (e.CurrentSelection.FirstOrDefault() is MediaItem selectedItem)
+        private async void OnSelectPhotoClicked(object sender, EventArgs e)
         {
-            // Dependiendo del tipo, navegar a la página correspondiente
-            if (selectedItem.Type == "Image")
-            {
-                var detailPage = new ImageDetailPage(selectedItem, _mediaService);
+            await ExecuteSelectPhotoCommand();
+        }
 
-                // Suscribirse al evento de eliminación
-                detailPage.MediaDeleted += async (s, itemId) =>
+        private async Task ExecuteSelectPhotoCommand()
+        {
+            var photo = await _mediaService.PickPhotoAsync();
+            if (photo is not null)
+            {
+                // Añadir a nuestra colección
+                var newItem = new MediaItem
                 {
-                    await DeleteMediaItemAsync(itemId);
+                    Id = Guid.NewGuid().ToString(),
+                    Title = Path.GetFileName(photo.FileName),
+                    Path = photo.FullPath,
+                    Type = "Image",
+                    DateCreated = DateTime.Now
                 };
 
-                await Navigation.PushAsync(detailPage);
-            }
-            else if (selectedItem.Type == "Video")
-            {
-                var playerPage = new VideoPlayerPage(selectedItem, _mediaService);
+                _viewModel.AddMediaItem(newItem);
+                RefreshMediaCollection();
 
-                // Suscribirse al evento de eliminación
-                playerPage.MediaDeleted += async (s, itemId) =>
+                // Guardar cambios
+                await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+            }
+        }
+
+        private async void OnSelectVideoClicked(object sender, EventArgs e)
+        {
+            await ExecuteSelectVideoCommand();
+        }
+
+        private async Task ExecuteSelectVideoCommand()
+        {
+            var video = await _mediaService.PickVideoAsync();
+            if (video is not null)
+            {
+                // Añadir a nuestra colección
+                var newItem = new MediaItem
                 {
-                    await DeleteMediaItemAsync(itemId);
+                    Id = Guid.NewGuid().ToString(),
+                    Title = Path.GetFileName(video.FileName),
+                    Path = video.FullPath,
+                    Type = "Video",
+                    DateCreated = DateTime.Now
                 };
 
-                await Navigation.PushAsync(playerPage);
+                _viewModel.AddMediaItem(newItem);
+                RefreshMediaCollection();
+
+                // Guardar cambios
+                await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
             }
-
-            // Desmarcar la selección
-            MediaCollection.SelectedItem = null;
         }
-    }
 
-    private async Task DeleteMediaItemAsync(string itemId)
-    {
-        _viewModel.RemoveMediaItem(itemId);
-        RefreshMediaCollection();
-
-        // Guardar los cambios
-        await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
-    }
-
-    // Métodos para funciones de UI mejoradas
-    private void OnSearchToggleClicked(object sender, EventArgs e)
-    {
-        _isSearchActive = !_isSearchActive;
-        _viewModel.IsSearchActive = _isSearchActive;
-    }
-
-    private void OnGridViewClicked(object sender, EventArgs e)
-    {
-        _viewModel.GridSpan = 2; // Vista de cuadrícula con 2 columnas
-        _viewModel.IsGridView = true;
-        _viewModel.IsListView = false;
-    }
-
-    private void OnListViewClicked(object sender, EventArgs e)
-    {
-        _viewModel.GridSpan = 1; // Vista de lista con 1 columna
-        _viewModel.IsGridView = false;
-        _viewModel.IsListView = true;
-    }
-
-    private async void OnMoreOptionsClicked(object sender, EventArgs e)
-    {
-        string action = await DisplayActionSheet(
-            "Opciones adicionales",
-            "Cancelar",
-            null,
-            "Tomar foto",
-            "Grabar video",
-            "Crear nuevo álbum",
-            "Ordenar por fecha",
-            "Ordenar por nombre",
-            "Preferencias",
-            "Acerca de");
-
-        switch (action)
+        private void RefreshMediaCollection()
         {
-            case "Tomar foto":
-                await ExecuteTakePhotoCommand();
-                break;
-            case "Grabar video":
-                await ExecuteCaptureVideoCommand();
-                break;
-            case "Crear nuevo álbum":
-                await HandleCreateAlbum();
-                break;
-            case "Ordenar por fecha":
-                _viewModel.SortByDate();
-                break;
-            case "Ordenar por nombre":
-                _viewModel.SortByName();
-                break;
-            case "Preferencias":
-                await HandlePreferences();
-                break;
-            case "Acerca de":
-                await DisplayAlert("Acerca de", "GaleriaApp v1.0\nUna aplicación para gestionar tus fotos y videos.", "Cerrar");
-                break;
+            MediaCollection.ItemsSource = null;
+            MediaCollection.ItemsSource = _viewModel.MediaItems;
         }
-    }
 
-    private async Task ExecuteTakePhotoCommand()
-    {
-        var photo = await _mediaService.TakePhotoAsync();
-        if (photo != null)
+        private async void OnMediaSelected(object sender, SelectionChangedEventArgs e)
         {
-            // Añadir a nuestra colección
-            var newItem = new MediaItem
+            if (e.CurrentSelection.FirstOrDefault() is MediaItem selectedItem)
             {
-                Id = Guid.NewGuid().ToString(),
-                Title = Path.GetFileName(photo.FileName),
-                Path = photo.FullPath,
-                Type = "Image",
-                DateCreated = DateTime.Now
-            };
+                // Dependiendo del tipo, navegar a la página correspondiente
+                if (selectedItem.Type == "Image")
+                {
+                    var detailPage = new ImageDetailPage(selectedItem, _mediaService);
 
-            _viewModel.AddMediaItem(newItem);
+                    // Suscribirse al evento de eliminación
+                    detailPage.MediaDeleted += async (s, itemId) =>
+                    {
+                        await DeleteMediaItemAsync(itemId);
+                    };
+
+                    await Navigation.PushAsync(detailPage);
+                }
+                else if (selectedItem.Type == "Video")
+                {
+                    var playerPage = new VideoPlayerPage(selectedItem, _mediaService);
+
+                    // Suscribirse al evento de eliminación
+                    playerPage.MediaDeleted += async (s, itemId) =>
+                    {
+                        await DeleteMediaItemAsync(itemId);
+                    };
+
+                    await Navigation.PushAsync(playerPage);
+                }
+
+                // Desmarcar la selección
+                MediaCollection.SelectedItem = null;
+            }
+        }
+
+        private async Task DeleteMediaItemAsync(string itemId)
+        {
+            _viewModel.RemoveMediaItem(itemId);
             RefreshMediaCollection();
 
-            // Guardar cambios
+            // Guardar los cambios
             await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
         }
-    }
 
-    private async Task ExecuteCaptureVideoCommand()
-    {
-        var video = await _mediaService.CaptureVideoAsync();
-        if (video != null)
+        // Métodos para funciones de UI mejoradas
+        private void OnSearchToggleClicked(object sender, EventArgs e)
         {
-            // Añadir a nuestra colección
-            var newItem = new MediaItem
+            _isSearchActive = !_isSearchActive;
+            _viewModel.IsSearchActive = _isSearchActive;
+        }
+
+        private void OnGridViewClicked(object sender, EventArgs e)
+        {
+            _viewModel.GridSpan = 2;
+            _viewModel.IsGridView = true;
+            _viewModel.IsListView = false;
+        }
+
+        private void OnListViewClicked(object sender, EventArgs e)
+        {
+            _viewModel.GridSpan = 1;
+            _viewModel.IsGridView = false;
+            _viewModel.IsListView = true;
+        }
+
+        private async void OnMoreOptionsClicked(object sender, EventArgs e)
+        {
+            string action = await DisplayActionSheet(
+                "Opciones adicionales",
+                "Cancelar",
+                null,
+                "Tomar foto",
+                "Grabar video",
+                "Crear nuevo álbum",
+                "Ordenar por fecha",
+                "Ordenar por nombre",
+                "Preferencias",
+                "Acerca de");
+
+            switch (action)
             {
-                Id = Guid.NewGuid().ToString(),
-                Title = Path.GetFileName(video.FileName),
-                Path = video.FullPath,
-                Type = "Video",
-                DateCreated = DateTime.Now
-            };
-
-            _viewModel.AddMediaItem(newItem);
-            RefreshMediaCollection();
-
-            // Guardar cambios
-            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+                case "Tomar foto":
+                    await ExecuteTakePhotoCommand();
+                    break;
+                case "Grabar video":
+                    await ExecuteCaptureVideoCommand();
+                    break;
+                case "Crear nuevo álbum":
+                    await HandleCreateAlbum();
+                    break;
+                case "Ordenar por fecha":
+                    _viewModel.SortByDate();
+                    break;
+                case "Ordenar por nombre":
+                    _viewModel.SortByName();
+                    break;
+                case "Preferencias":
+                    await HandlePreferences();
+                    break;
+                case "Acerca de":
+                    await DisplayAlert("Acerca de", "GaleriaApp v1.0\nUna aplicación para gestionar tus fotos y videos.", "Cerrar");
+                    break;
+            }
         }
-    }
 
-    private async Task HandleCreateAlbum()
-    {
-        string albumName = await DisplayPromptAsync(
-            "Nuevo Álbum",
-            "Introduce un nombre para el álbum:",
-            accept: "Crear",
-            cancel: "Cancelar");
-
-        if (!string.IsNullOrWhiteSpace(albumName))
+        private async Task ExecuteTakePhotoCommand()
         {
-            // Aquí iría la lógica para crear el álbum
-            await DisplayAlert("Álbum Creado", $"El álbum '{albumName}' ha sido creado.", "OK");
+            var photo = await _mediaService.TakePhotoAsync();
+            if (photo is not null)
+            {
+                // Añadir a nuestra colección
+                var newItem = new MediaItem
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Title = Path.GetFileName(photo.FileName),
+                    Path = photo.FullPath,
+                    Type = "Image",
+                    DateCreated = DateTime.Now
+                };
+
+                _viewModel.AddMediaItem(newItem);
+                RefreshMediaCollection();
+
+                // Guardar cambios
+                await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+            }
         }
-    }
 
-    private async Task HandlePreferences()
-    {
-        string action = await DisplayActionSheet(
-            "Preferencias",
-            "Cancelar",
-            null,
-            "Tema claro",
-            "Tema oscuro",
-            "Usar tema del sistema");
-
-        switch (action)
+        private async Task ExecuteCaptureVideoCommand()
         {
-            case "Tema claro":
-                Application.Current.UserAppTheme = AppTheme.Light;
-                break;
-            case "Tema oscuro":
-                Application.Current.UserAppTheme = AppTheme.Dark;
-                break;
-            case "Usar tema del sistema":
-                Application.Current.UserAppTheme = AppTheme.Unspecified;
-                break;
+            var video = await _mediaService.CaptureVideoAsync();
+            if (video is not null)
+            {
+                // Añadir a nuestra colección
+                var newItem = new MediaItem
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Title = Path.GetFileName(video.FileName),
+                    Path = video.FullPath,
+                    Type = "Video",
+                    DateCreated = DateTime.Now
+                };
+
+                _viewModel.AddMediaItem(newItem);
+                RefreshMediaCollection();
+
+                // Guardar cambios
+                await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+            }
+        }
+
+        private async Task HandleCreateAlbum()
+        {
+            string albumName = await DisplayPromptAsync(
+                "Nuevo Álbum",
+                "Introduce un nombre para el álbum:",
+                accept: "Crear",
+                cancel: "Cancelar");
+
+            if (!string.IsNullOrWhiteSpace(albumName))
+            {
+                // Aquí iría la lógica para crear el álbum
+                await DisplayAlert("Álbum Creado", $"El álbum '{albumName}' ha sido creado.", "OK");
+            }
+        }
+
+        private async Task HandlePreferences()
+        {
+            string action = await DisplayActionSheet(
+                "Preferencias",
+                "Cancelar",
+                null,
+                "Tema claro",
+                "Tema oscuro",
+                "Usar tema del sistema");
+
+            switch (action)
+            {
+                case "Tema claro":
+                    Application.Current.UserAppTheme = AppTheme.Light;
+                    break;
+                case "Tema oscuro":
+                    Application.Current.UserAppTheme = AppTheme.Dark;
+                    break;
+                case "Usar tema del sistema":
+                    Application.Current.UserAppTheme = AppTheme.Unspecified;
+                    break;
+            }
         }
     }
-}
 }

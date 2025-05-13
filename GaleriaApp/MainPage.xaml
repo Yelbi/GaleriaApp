@@ -10,6 +10,7 @@
         <ResourceDictionary>
             <converters:StringEqualConverter x:Key="StringEqualConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BoolToBackgroundConverter x:Key="BoolToBackgroundConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
     <Grid RowDefinitions="Auto,Auto,*,Auto"
@@ -23,8 +24,7 @@
                    FontAttributes="Bold"
                    VerticalOptions="Center" />
             <Button Grid.Column="1"
-                    Text="&#xf002;"
-                    FontFamily="FontAwesome"
+                    Text="🔍"
                     Clicked="OnSearchToggleClicked"
                     WidthRequest="50"
                     HeightRequest="50"
@@ -102,8 +102,7 @@
                                             WidthRequest="50"
                                             HeightRequest="50"
                                             StrokeShape="RoundRectangle 25">
-                                        <Label Text="&#xf04b;"
-                                               FontFamily="FontAwesome"
+                                        <Label Text="▶"
                                                FontSize="20"
                                                TextColor="White"
                                                HorizontalOptions="Center"
@@ -163,8 +162,7 @@
                Margin="0,15,0,10"
                HorizontalOptions="Center">
             <HorizontalStackLayout Spacing="10">
-                <Button Text="&#xf030;"
-                        FontFamily="FontAwesome"
+                <Button Text="📷"
                         Command="{Binding TakePhotoCommand}"
                         WidthRequest="60"
                         HeightRequest="60"
@@ -172,8 +170,7 @@
                         BackgroundColor="Transparent"
                         TextColor="White"
                         FontSize="24" />
-                <Button Text="&#xf03e;"
-                        FontFamily="FontAwesome"
+                <Button Text="🖼"
                         Command="{Binding SelectPhotoCommand}"
                         WidthRequest="60"
                         HeightRequest="60"
@@ -181,8 +178,7 @@
                         BackgroundColor="Transparent"
                         TextColor="White"
                         FontSize="24" />
-                <Button Text="&#xf03d;"
-                        FontFamily="FontAwesome"
+                <Button Text="🎬"
                         Command="{Binding SelectVideoCommand}"
                         WidthRequest="60"
                         HeightRequest="60"
@@ -190,8 +186,7 @@
                         BackgroundColor="Transparent"
                         TextColor="White"
                         FontSize="24" />
-                <Button Text="&#xf067;"
-                        FontFamily="FontAwesome"
+                <Button Text="+"
                         Clicked="OnMoreOptionsClicked"
                         WidthRequest="60"
                         HeightRequest="60"

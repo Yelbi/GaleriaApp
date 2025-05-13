@@ -2,6 +2,7 @@
 using GaleriaApp.Services;
 using GaleriaApp.ViewModels;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Hosting;
 
 namespace GaleriaApp;
 
@@ -18,8 +19,6 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                // Agregar fuente de FontAwesome si la vas a usar
-                fonts.AddFont("FontAwesome.ttf", "FontAwesome");
             });
 
         // Registrar servicios

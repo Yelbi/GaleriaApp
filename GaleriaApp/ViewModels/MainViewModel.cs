@@ -1,8 +1,9 @@
-﻿// Nuevo archivo: ViewModels/MainViewModel.cs
-using GaleriaApp.Models;
+﻿using GaleriaApp.Models;
 using GaleriaApp.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using Microsoft.Maui.Controls;
+using System.Runtime.CompilerServices;
 
 namespace GaleriaApp.ViewModels
 {
@@ -14,6 +15,7 @@ namespace GaleriaApp.ViewModels
 
         public ObservableCollection<MediaItem> MediaItems { get; } = new ObservableCollection<MediaItem>();
 
+        public ICommand TakePhotoCommand { get; }
         public ICommand SelectPhotoCommand { get; }
         public ICommand SelectVideoCommand { get; }
         public ICommand MediaSelectedCommand { get; }
@@ -31,7 +33,7 @@ namespace GaleriaApp.ViewModels
             }
         }
 
-        private string _selectedMediaType;
+        private string _selectedMediaType = "Todos";
         public string SelectedMediaType
         {
             get => _selectedMediaType;
@@ -42,11 +44,44 @@ namespace GaleriaApp.ViewModels
             }
         }
 
+        // Propiedades para la UI
+        private bool _isSearchActive;
+        public bool IsSearchActive
+        {
+            get => _isSearchActive;
+            set => SetProperty(ref _isSearchActive, value);
+        }
+
+        private bool _isGridView = true;
+        public bool IsGridView
+        {
+            get => _isGridView;
+            set => SetProperty(ref _isGridView, value);
+        }
+
+        private bool _isListView;
+        public bool IsListView
+        {
+            get => _isListView;
+            set => SetProperty(ref _isListView, value);
+        }
+
+        private int _gridSpan = 2;
+        public int GridSpan
+        {
+            get => _gridSpan;
+            set => SetProperty(ref _gridSpan, value);
+        }
+
+        // Propiedad derivada para mostrar "No ocupado"
+        public bool IsNotBusy => !IsBusy;
+
         public MainViewModel(IMediaService mediaService, IStorageService storageService)
         {
             _mediaService = mediaService;
             _storageService = storageService;
 
+            TakePhotoCommand = new Command(async () => await TakePhotoAsync());
             SelectPhotoCommand = new Command(async () => await SelectPhotoAsync());
             SelectVideoCommand = new Command(async () => await SelectVideoAsync());
             MediaSelectedCommand = new Command<MediaItem>(async (item) => await OnMediaSelected(item));
@@ -54,6 +89,17 @@ namespace GaleriaApp.ViewModels
 
             // Cargar los medios al inicio
             LoadSavedMediaAsync();
+        }
+
+        protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            base.OnPropertyChanged(propertyName);
+
+            // Notificar cambios en propiedades derivadas
+            if (propertyName == nameof(IsBusy))
+            {
+                OnPropertyChanged(nameof(IsNotBusy));
+            }
         }
 
         private async Task LoadSavedMediaAsync()
@@ -81,10 +127,31 @@ namespace GaleriaApp.ViewModels
             }
         }
 
+        private async Task TakePhotoAsync()
+        {
+            var photo = await _mediaService.TakePhotoAsync();
+            if (photo is not null)
+            {
+                var newItem = new MediaItem
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Title = Path.GetFileName(photo.FileName),
+                    Path = photo.FullPath,
+                    Type = "Image",
+                    DateCreated = DateTime.Now
+                };
+
+                _allMediaItems.Add(newItem);
+                MediaItems.Add(newItem);
+
+                await _storageService.SaveMediaListAsync(_allMediaItems);
+            }
+        }
+
         private async Task SelectPhotoAsync()
         {
             var photo = await _mediaService.PickPhotoAsync();
-            if (photo != null)
+            if (photo is not null)
             {
                 // Añadir a nuestra colección
                 var newItem = new MediaItem
@@ -107,7 +174,7 @@ namespace GaleriaApp.ViewModels
         private async Task SelectVideoAsync()
         {
             var video = await _mediaService.PickVideoAsync();
-            if (video != null)
+            if (video is not null)
             {
                 // Añadir a nuestra colección
                 var newItem = new MediaItem
@@ -177,34 +244,6 @@ namespace GaleriaApp.ViewModels
             {
                 MediaItems.Add(item);
             }
-        }
-        // Propiedades para la UI
-        private bool _isSearchActive;
-        public bool IsSearchActive
-        {
-            get => _isSearchActive;
-            set => SetProperty(ref _isSearchActive, value);
-        }
-
-        private bool _isGridView = true;
-        public bool IsGridView
-        {
-            get => _isGridView;
-            set => SetProperty(ref _isGridView, value);
-        }
-
-        private bool _isListView;
-        public bool IsListView
-        {
-            get => _isListView;
-            set => SetProperty(ref _isListView, value);
-        }
-
-        private int _gridSpan = 2;
-        public int GridSpan
-        {
-            get => _gridSpan;
-            set => SetProperty(ref _gridSpan, value);
         }
 
         // Métodos para gestionar la lista

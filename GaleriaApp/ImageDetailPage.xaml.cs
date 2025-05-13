@@ -1,5 +1,8 @@
 ﻿using GaleriaApp.Models;
 using GaleriaApp.Services;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 using System.IO;
 
 namespace GaleriaApp;
@@ -126,17 +129,17 @@ public partial class ImageDetailPage : ContentPage
     {
         switch (e.Status)
         {
-            case GestureStatus.Started:
+            case Microsoft.Maui.GestureStatus.Started:
                 _startScale = _currentScale;
                 break;
 
-            case GestureStatus.Running:
+            case Microsoft.Maui.GestureStatus.Running:
                 _currentScale = Math.Max(_startScale * e.Scale, 0.5);
                 _currentScale = Math.Clamp(_currentScale, 0.5, 5.0);
                 DetailImage.Scale = _currentScale;
                 break;
 
-            case GestureStatus.Completed:
+            case Microsoft.Maui.GestureStatus.Completed:
                 if (_currentScale < 0.8)
                 {
                     _currentScale = 1;
@@ -155,7 +158,7 @@ public partial class ImageDetailPage : ContentPage
     {
         switch (e.StatusType)
         {
-            case GestureStatus.Running:
+            case Microsoft.Maui.GestureStatus.Running:
                 if (_currentScale > 1)
                 {
                     _currentX = _xOffset + e.TotalX;
@@ -173,7 +176,7 @@ public partial class ImageDetailPage : ContentPage
                 }
                 break;
 
-            case GestureStatus.Completed:
+            case Microsoft.Maui.GestureStatus.Completed:
                 _xOffset = _currentX;
                 _yOffset = _currentY;
                 break;
@@ -191,7 +194,7 @@ public partial class ImageDetailPage : ContentPage
 
         fadeTask.ContinueWith(_ =>
         {
-            Device.BeginInvokeOnMainThread(() =>
+            MainThread.BeginInvokeOnMainThread(() =>
             {
                 ControlsOverlay.IsVisible = _isControlsVisible;
             });
@@ -205,7 +208,7 @@ public partial class ImageDetailPage : ContentPage
 
     private void HideControlsCallback(object state)
     {
-        Device.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(() =>
         {
             if (_isControlsVisible)
             {
