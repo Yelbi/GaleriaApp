@@ -32,6 +32,35 @@ public partial class MainPage : ContentPage
         MediaCollection.ItemsSource = _viewModel.MediaItems;
     }
 
+    // Método actualizado para tomar fotos
+    private async void OnTakePhotoClicked(object sender, EventArgs e)
+    {
+        await ExecuteTakePhotoCommand();
+    }
+
+    private async Task ExecuteTakePhotoCommand()
+    {
+        var photo = await _mediaService.TakePhotoAsync();
+        if (photo != null)
+        {
+            // Añadir a nuestra colección
+            var newItem = new MediaItem
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = Path.GetFileName(photo.FileName),
+                Path = photo.FullPath,
+                Type = "Image",
+                DateCreated = DateTime.Now
+            };
+
+            _viewModel.AddMediaItem(newItem);
+            RefreshMediaCollection();
+
+            // Guardar cambios
+            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+        }
+    }
+
     private async void OnSelectPhotoClicked(object sender, EventArgs e)
     {
         await ExecuteSelectPhotoCommand();
@@ -138,7 +167,7 @@ public partial class MainPage : ContentPage
         await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
     }
 
-    // Nuevos métodos para funciones de UI mejoradas
+    // Métodos para funciones de UI mejoradas
     private void OnSearchToggleClicked(object sender, EventArgs e)
     {
         _isSearchActive = !_isSearchActive;
@@ -165,6 +194,8 @@ public partial class MainPage : ContentPage
             "Opciones adicionales",
             "Cancelar",
             null,
+            "Tomar foto",
+            "Grabar video",
             "Crear nuevo álbum",
             "Ordenar por fecha",
             "Ordenar por nombre",
@@ -173,6 +204,12 @@ public partial class MainPage : ContentPage
 
         switch (action)
         {
+            case "Tomar foto":
+                await ExecuteTakePhotoCommand();
+                break;
+            case "Grabar video":
+                await ExecuteCaptureVideoCommand();
+                break;
             case "Crear nuevo álbum":
                 await HandleCreateAlbum();
                 break;
@@ -188,6 +225,29 @@ public partial class MainPage : ContentPage
             case "Acerca de":
                 await DisplayAlert("Acerca de", "GaleriaApp v1.0\nUna aplicación para gestionar tus fotos y videos.", "Cerrar");
                 break;
+        }
+    }
+
+    private async Task ExecuteCaptureVideoCommand()
+    {
+        var video = await _mediaService.CaptureVideoAsync();
+        if (video != null)
+        {
+            // Añadir a nuestra colección
+            var newItem = new MediaItem
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = Path.GetFileName(video.FileName),
+                Path = video.FullPath,
+                Type = "Video",
+                DateCreated = DateTime.Now
+            };
+
+            _viewModel.AddMediaItem(newItem);
+            RefreshMediaCollection();
+
+            // Guardar cambios
+            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
         }
     }
 

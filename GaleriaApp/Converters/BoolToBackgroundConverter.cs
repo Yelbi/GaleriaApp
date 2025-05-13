@@ -8,7 +8,12 @@ namespace GaleriaApp.Converters
         {
             if (value is bool boolValue && boolValue)
             {
-                return Colors.LightBlue;
+                // Usar el color primario de la aplicación cuando está activo
+                if (Application.Current.Resources.TryGetValue("Primary", out var primaryColor))
+                {
+                    return primaryColor;
+                }
+                return Color.FromRgb(81, 43, 212); // Fallback al color primario
             }
             return Colors.Transparent;
         }

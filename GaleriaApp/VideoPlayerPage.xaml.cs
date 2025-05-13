@@ -10,7 +10,13 @@ public partial class VideoPlayerPage : ContentPage
     private readonly MediaItem _mediaItem;
     private readonly IMediaService _mediaService;
     private bool _isUpdatingSlider = false;
+    private bool _isUserSeeking = false;
     private TimeSpan _totalDuration = TimeSpan.Zero;
+    private Timer _hideControlsTimer;
+    private bool _areControlsVisible = true;
+    private double _currentPlaybackRate = 1.0;
+    private double _currentVolume = 1.0;
+    private bool _isMuted = false;
 
     // Evento para notificar cuando se elimina un elemento
     public event EventHandler<string>? MediaDeleted;
@@ -21,28 +27,272 @@ public partial class VideoPlayerPage : ContentPage
         _mediaItem = mediaItem;
         _mediaService = mediaService;
 
-        // Cargar el video
-        if (File.Exists(_mediaItem.Path))
-        {
-            VideoPlayer.Source = MediaSource.FromFile(_mediaItem.Path);
-        }
-        else
-        {
-            // Si el video no existe, mostrar un mensaje y volver atrás
-            DisplayAlert("Error", "No se puede cargar el video. El archivo no existe.", "OK");
-            Navigation.PopAsync();
-        }
-
         // Establecer el título
         Title = _mediaItem.Title;
+        VideoTitleLabel.Text = _mediaItem.Title;
+
+        // Inicializar controles
+        InitializePlayer();
+
+        // Configurar timer para ocultar controles
+        _hideControlsTimer = new Timer(HideControlsCallback, null, Timeout.Infinite, Timeout.Infinite);
+
+        // Agregar gestos para mostrar/ocultar controles
+        var tapGesture = new TapGestureRecognizer();
+        tapGesture.Tapped += OnVideoTapped;
+        ControlsOverlay.GestureRecognizers.Add(tapGesture);
+    }
+
+    private async void InitializePlayer()
+    {
+        try
+        {
+            LoadingOverlay.IsVisible = true;
+
+            if (File.Exists(_mediaItem.Path))
+            {
+                // Configurar la fuente del video
+                VideoPlayer.Source = MediaSource.FromFile(_mediaItem.Path);
+
+                // Configurar propiedades iniciales
+                VideoPlayer.Volume = _currentVolume;
+                VideoPlayer.ShouldAutoPlay = false;
+
+                // Actualizar información del video
+                UpdateVideoInfo();
+            }
+            else
+            {
+                await DisplayAlert("Error", "No se puede cargar el video. El archivo no existe.", "OK");
+                await Navigation.PopAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Error al inicializar el reproductor: {ex.Message}", "OK");
+            await Navigation.PopAsync();
+        }
+    }
+
+    private void UpdateVideoInfo()
+    {
+        try
+        {
+            var fileInfo = new FileInfo(_mediaItem.Path);
+            var fileSizeMB = (fileInfo.Length / 1024.0 / 1024.0).ToString("F1");
+            VideoInfoLabel.Text = $"{_mediaItem.DateCreated:dd/MM/yyyy} • {fileSizeMB} MB";
+        }
+        catch
+        {
+            VideoInfoLabel.Text = _mediaItem.DateCreated.ToString("dd/MM/yyyy");
+        }
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
 
-        // Detener el video al salir de la página
-        VideoPlayer.Stop();
+        // Pausar y limpiar recursos
+        VideoPlayer?.Stop();
+        _hideControlsTimer?.Dispose();
+    }
+
+    #region Event Handlers - MediaElement
+
+    private void OnMediaOpened(object sender, EventArgs e)
+    {
+        LoadingOverlay.IsVisible = false;
+        CenterPlayButton.IsVisible = true;
+
+        _totalDuration = VideoPlayer.Duration;
+        TotalTimeLabel.Text = FormatTimeSpan(_totalDuration);
+        CurrentTimeLabel.Text = "00:00";
+        ProgressSlider.Value = 0;
+
+        // Auto-ocultar controles después de 3 segundos
+        ResetHideControlsTimer();
+    }
+
+    private void OnMediaEnded(object sender, EventArgs e)
+    {
+        PlayPauseButton.Text = "▶";
+        CenterPlayButton.Text = "▶";
+        CenterPlayButton.IsVisible = true;
+
+        // Mostrar controles al final
+        ShowControls();
+    }
+
+    private void OnMediaFailed(object sender, MediaFailedEventArgs e)
+    {
+        LoadingOverlay.IsVisible = false;
+        Device.BeginInvokeOnMainThread(async () =>
+        {
+            await DisplayAlert("Error", $"No se pudo reproducir el video: {e.ErrorMessage}", "OK");
+        });
+    }
+
+    private void OnStateChanged(object sender, MediaStateChangedEventArgs e)
+    {
+        Device.BeginInvokeOnMainThread(() =>
+        {
+            switch (e.NewState)
+            {
+                case MediaElementState.Playing:
+                    PlayPauseButton.Text = "⏸";
+                    CenterPlayButton.Text = "⏸";
+                    CenterPlayButton.IsVisible = false;
+                    break;
+                case MediaElementState.Paused:
+                case MediaElementState.Stopped:
+                    PlayPauseButton.Text = "▶";
+                    CenterPlayButton.Text = "▶";
+                    CenterPlayButton.IsVisible = true;
+                    ShowControls();
+                    break;
+                case MediaElementState.Buffering:
+                    LoadingOverlay.IsVisible = true;
+                    break;
+            }
+        });
+    }
+
+    private void OnPositionChanged(object sender, MediaPositionChangedEventArgs e)
+    {
+        if (!_isUpdatingSlider && !_isUserSeeking && _totalDuration.TotalSeconds > 0)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                double progress = e.Position.TotalSeconds / _totalDuration.TotalSeconds * 100;
+                ProgressSlider.Value = progress;
+                CurrentTimeLabel.Text = FormatTimeSpan(e.Position);
+            });
+        }
+    }
+
+    #endregion
+
+    #region Control Event Handlers
+
+    private void OnVideoTapped(object sender, TappedEventArgs e)
+    {
+        ToggleControlsVisibility();
+        ResetHideControlsTimer();
+    }
+
+    private void OnCenterPlayClicked(object sender, EventArgs e)
+    {
+        OnPlayPauseClicked(sender, e);
+    }
+
+    private void OnPlayPauseClicked(object sender, EventArgs e)
+    {
+        if (VideoPlayer.CurrentState == MediaElementState.Playing)
+        {
+            VideoPlayer.Pause();
+        }
+        else
+        {
+            VideoPlayer.Play();
+
+            // Si llegó al final, reiniciar
+            if (VideoPlayer.Position >= _totalDuration)
+            {
+                VideoPlayer.SeekTo(TimeSpan.Zero);
+            }
+        }
+
+        ResetHideControlsTimer();
+    }
+
+    private void OnRewindClicked(object sender, EventArgs e)
+    {
+        TimeSpan newPosition;
+        if (VideoPlayer.Position.TotalSeconds >= 10)
+        {
+            newPosition = VideoPlayer.Position - TimeSpan.FromSeconds(10);
+        }
+        else
+        {
+            newPosition = TimeSpan.Zero;
+        }
+        VideoPlayer.SeekTo(newPosition);
+        ResetHideControlsTimer();
+    }
+
+    private void OnForwardClicked(object sender, EventArgs e)
+    {
+        TimeSpan newPosition;
+        if (VideoPlayer.Position.TotalSeconds + 10 < _totalDuration.TotalSeconds)
+        {
+            newPosition = VideoPlayer.Position + TimeSpan.FromSeconds(10);
+        }
+        else
+        {
+            newPosition = _totalDuration;
+        }
+        VideoPlayer.SeekTo(newPosition);
+        ResetHideControlsTimer();
+    }
+
+    private void OnProgressDragStarted(object sender, EventArgs e)
+    {
+        _isUserSeeking = true;
+        _hideControlsTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+    }
+
+    private void OnProgressChanged(object sender, ValueChangedEventArgs e)
+    {
+        if (_isUserSeeking && _totalDuration.TotalSeconds > 0)
+        {
+            var newPosition = TimeSpan.FromSeconds(e.NewValue / 100 * _totalDuration.TotalSeconds);
+            CurrentTimeLabel.Text = FormatTimeSpan(newPosition);
+        }
+    }
+
+    private void OnProgressDragCompleted(object sender, EventArgs e)
+    {
+        if (_totalDuration.TotalSeconds > 0)
+        {
+            var newPosition = TimeSpan.FromSeconds(ProgressSlider.Value / 100 * _totalDuration.TotalSeconds);
+            VideoPlayer.SeekTo(newPosition);
+        }
+
+        _isUserSeeking = false;
+        ResetHideControlsTimer();
+    }
+
+    private async void OnSpeedClicked(object sender, EventArgs e)
+    {
+        // Cambiar velocidad de reproducción
+        var rates = new[] { 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0 };
+        var current = rates.FirstOrDefault(r => Math.Abs(r - _currentPlaybackRate) < 0.01);
+        var currentIndex = Array.IndexOf(rates, current);
+        var nextIndex = (currentIndex + 1) % rates.Length;
+
+        _currentPlaybackRate = rates[nextIndex];
+        VideoPlayer.Speed = _currentPlaybackRate;
+        SpeedButton.Text = $"{_currentPlaybackRate}x";
+
+        ResetHideControlsTimer();
+    }
+
+    private void OnVolumeClicked(object sender, EventArgs e)
+    {
+        _isMuted = !_isMuted;
+
+        if (_isMuted)
+        {
+            VideoPlayer.Volume = 0;
+            VolumeButton.Text = "🔇";
+        }
+        else
+        {
+            VideoPlayer.Volume = _currentVolume;
+            VolumeButton.Text = "🔊";
+        }
+
+        ResetHideControlsTimer();
     }
 
     private async void OnShareClicked(object sender, EventArgs e)
@@ -54,6 +304,7 @@ public partial class VideoPlayerPage : ContentPage
                 Title = _mediaItem.Title,
                 File = new ShareFile(_mediaItem.Path)
             });
+            ResetHideControlsTimer();
         }
         catch (Exception ex)
         {
@@ -71,13 +322,8 @@ public partial class VideoPlayerPage : ContentPage
         {
             try
             {
-                // Detener el video antes de eliminarlo
                 VideoPlayer.Stop();
-
-                // Notificar a la página principal que se eliminó este elemento
                 MediaDeleted?.Invoke(this, _mediaItem.Id);
-
-                // Regresar a la página anterior
                 await Navigation.PopAsync();
             }
             catch (Exception ex)
@@ -87,120 +333,98 @@ public partial class VideoPlayerPage : ContentPage
         }
     }
 
-    // Manejadores para el reproductor
-    private void OnMediaOpened(object sender, EventArgs e)
-    {
-        _totalDuration = VideoPlayer.Duration;
-        TotalTimeLabel.Text = FormatTimeSpan(_totalDuration);
-        CurrentTimeLabel.Text = "00:00";
-        ProgressSlider.Value = 0;
-    }
-
-    private void OnMediaEnded(object sender, EventArgs e)
-    {
-        PlayPauseButton.Text = "Reproducir";
-    }
-
-    private void OnMediaFailed(object sender, MediaFailedEventArgs e)
-    {
-        DisplayAlert("Error", $"No se pudo reproducir el video: {e.ErrorMessage}", "OK");
-    }
-
-    private void OnPositionChanged(object sender, MediaPositionChangedEventArgs e)
-    {
-        if (!_isUpdatingSlider && _totalDuration.TotalSeconds > 0)
-        {
-            double progress = e.Position.TotalSeconds / _totalDuration.TotalSeconds;
-            ProgressSlider.Value = progress;
-            CurrentTimeLabel.Text = FormatTimeSpan(e.Position);
-        }
-    }
-
-    private void OnSliderValueChanged(object sender, ValueChangedEventArgs e)
-    {
-        if (_totalDuration.TotalSeconds > 0 && Math.Abs(e.OldValue - e.NewValue) > 0.01)
-        {
-            _isUpdatingSlider = true;
-            TimeSpan newPosition = TimeSpan.FromSeconds(e.NewValue * _totalDuration.TotalSeconds);
-            VideoPlayer.SeekTo(newPosition);
-            CurrentTimeLabel.Text = FormatTimeSpan(newPosition);
-            _isUpdatingSlider = false;
-        }
-    }
-
-    private void OnPlayPauseClicked(object sender, EventArgs e)
-    {
-        if (VideoPlayer.CurrentState == MediaElementState.Playing)
-        {
-            VideoPlayer.Pause();
-            PlayPauseButton.Text = "Reproducir";
-        }
-        else
-        {
-            VideoPlayer.Play();
-            PlayPauseButton.Text = "Pausa";
-
-            // Si llegó al final, reiniciar
-            if (VideoPlayer.Position >= _totalDuration)
-            {
-                VideoPlayer.SeekTo(TimeSpan.Zero);
-            }
-        }
-    }
-
-    private void OnRewindClicked(object sender, EventArgs e)
-    {
-        TimeSpan newPosition;
-        if (VideoPlayer.Position.TotalSeconds >= 10)
-        {
-            newPosition = VideoPlayer.Position - TimeSpan.FromSeconds(10);
-        }
-        else
-        {
-            newPosition = TimeSpan.Zero;
-        }
-        VideoPlayer.SeekTo(newPosition);
-    }
-
-    private void OnForwardClicked(object sender, EventArgs e)
-    {
-        if (VideoPlayer.Position.TotalSeconds + 10 < _totalDuration.TotalSeconds)
-        {
-            TimeSpan newPosition = VideoPlayer.Position + TimeSpan.FromSeconds(10);
-            VideoPlayer.SeekTo(newPosition);
-        }
-        else
-        {
-            // Si estamos casi al final, ir al final
-            VideoPlayer.SeekTo(_totalDuration);
-        }
-    }
-
     private void OnFullScreenClicked(object sender, EventArgs e)
     {
-        bool isFullscreen = Shell.GetNavBarIsVisible(this);
+        var isFullscreen = Shell.GetNavBarIsVisible(this);
 
         if (isFullscreen)
         {
-            // Ocultar elementos de navegación
+            // Activar pantalla completa
             Shell.SetNavBarIsVisible(this, false);
             Shell.SetTabBarIsVisible(this, false);
             Title = string.Empty;
+            FullScreenButton.Text = "⛷";
+            FullScreenTopButton.Text = "⛷";
         }
         else
         {
-            // Mostrar elementos de navegación
+            // Salir de pantalla completa
             Shell.SetNavBarIsVisible(this, true);
             Shell.SetTabBarIsVisible(this, true);
             Title = _mediaItem.Title;
+            FullScreenButton.Text = "⛶";
+            FullScreenTopButton.Text = "⛶";
+        }
+
+        ResetHideControlsTimer();
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private void ToggleControlsVisibility()
+    {
+        if (_areControlsVisible)
+        {
+            HideControls();
+        }
+        else
+        {
+            ShowControls();
         }
     }
 
-    // Método helper para formatear tiempo
+    private async void ShowControls()
+    {
+        _areControlsVisible = true;
+
+        // Animar mostrar controles
+        BottomControls.IsVisible = true;
+        ControlsOverlay.IsVisible = true;
+
+        await Task.WhenAll(
+            BottomControls.FadeTo(1, 200),
+            ControlsOverlay.FadeTo(1, 200)
+        );
+    }
+
+    private async void HideControls()
+    {
+        _areControlsVisible = false;
+
+        // Animar ocultar controles
+        await Task.WhenAll(
+            BottomControls.FadeTo(0, 200),
+            ControlsOverlay.FadeTo(0, 200)
+        );
+
+        BottomControls.IsVisible = false;
+        ControlsOverlay.IsVisible = false;
+    }
+
+    private void ResetHideControlsTimer()
+    {
+        _hideControlsTimer?.Change(3000, Timeout.Infinite);
+    }
+
+    private void HideControlsCallback(object state)
+    {
+        Device.BeginInvokeOnMainThread(() =>
+        {
+            if (_areControlsVisible && VideoPlayer.CurrentState == MediaElementState.Playing)
+            {
+                HideControls();
+            }
+        });
+    }
+
     private string FormatTimeSpan(TimeSpan timeSpan)
     {
         return timeSpan.Hours > 0
             ? $"{timeSpan.Hours}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}"
             : $"{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
     }
+
+    #endregion
 }
