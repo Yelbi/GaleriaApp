@@ -2,11 +2,11 @@
 using GaleriaApp.Services;
 using GaleriaApp.ViewModels;
 
-namespace GaleriaApp;
-
-public partial class MainPage : ContentPage
+namespace GaleriaApp
 {
-    private readonly MainViewModel _viewModel;
+    public partial class MainPage : ContentPage
+    {
+        private readonly MainViewModel _viewModel;
     private readonly IMediaService _mediaService;
     private readonly IStorageService _storageService;
     private bool _isSearchActive = false;
@@ -30,35 +30,6 @@ public partial class MainPage : ContentPage
         var mediaItems = await _storageService.LoadMediaListAsync();
         _viewModel.LoadMediaItems(mediaItems);
         MediaCollection.ItemsSource = _viewModel.MediaItems;
-    }
-
-    // Método actualizado para tomar fotos
-    private async void OnTakePhotoClicked(object sender, EventArgs e)
-    {
-        await ExecuteTakePhotoCommand();
-    }
-
-    private async Task ExecuteTakePhotoCommand()
-    {
-        var photo = await _mediaService.TakePhotoAsync();
-        if (photo != null)
-        {
-            // Añadir a nuestra colección
-            var newItem = new MediaItem
-            {
-                Id = Guid.NewGuid().ToString(),
-                Title = Path.GetFileName(photo.FileName),
-                Path = photo.FullPath,
-                Type = "Image",
-                DateCreated = DateTime.Now
-            };
-
-            _viewModel.AddMediaItem(newItem);
-            RefreshMediaCollection();
-
-            // Guardar cambios
-            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
-        }
     }
 
     private async void OnSelectPhotoClicked(object sender, EventArgs e)
@@ -228,6 +199,29 @@ public partial class MainPage : ContentPage
         }
     }
 
+    private async Task ExecuteTakePhotoCommand()
+    {
+        var photo = await _mediaService.TakePhotoAsync();
+        if (photo != null)
+        {
+            // Añadir a nuestra colección
+            var newItem = new MediaItem
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = Path.GetFileName(photo.FileName),
+                Path = photo.FullPath,
+                Type = "Image",
+                DateCreated = DateTime.Now
+            };
+
+            _viewModel.AddMediaItem(newItem);
+            RefreshMediaCollection();
+
+            // Guardar cambios
+            await _storageService.SaveMediaListAsync(_viewModel.MediaItems.ToList());
+        }
+    }
+
     private async Task ExecuteCaptureVideoCommand()
     {
         var video = await _mediaService.CaptureVideoAsync();
@@ -289,4 +283,5 @@ public partial class MainPage : ContentPage
                 break;
         }
     }
+}
 }

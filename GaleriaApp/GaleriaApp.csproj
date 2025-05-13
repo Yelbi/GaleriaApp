@@ -3,9 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
-
+		
 		<OutputType>Exe</OutputType>
 		<RootNamespace>GaleriaApp</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -65,12 +63,33 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Update="App.xaml.cs">
+			<DependentUpon>App.xaml</DependentUpon>
+		</Compile>
+		<Compile Update="AppShell.xaml.cs">
+			<DependentUpon>AppShell.xaml</DependentUpon>
+		</Compile>
+		<Compile Update="MainPage.xaml.cs">
+            <DependentUpon>MainPage.xaml</DependentUpon>
+        </Compile>
+		<Compile Update="ImageDetailPage.xaml.cs">
+			<DependentUpon>ImageDetailPage.xaml</DependentUpon>
+		</Compile>
+		<Compile Update="VideoPlayerPage.xaml.cs">
+			<DependentUpon>VideoPlayerPage.xaml</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
 		<MauiXaml Update="App.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
-		<MauiXaml Update="MainPage.xaml">
+		<MauiXaml Update="AppShell.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
+		<MauiXaml Update="MainPage.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
 		<MauiXaml Update="ImageDetailPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
